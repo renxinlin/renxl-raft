@@ -31,6 +31,9 @@ public class NodeContext {
     private NodeId selfId;
 
 
+    private NodeStore nodeStore;
+
+
 
 
     // 组件

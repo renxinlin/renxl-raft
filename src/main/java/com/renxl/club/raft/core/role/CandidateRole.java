@@ -14,7 +14,7 @@ import lombok.experimental.Accessors;
 @Data
 @EqualsAndHashCode
 @Accessors(chain = true)
-public class CandidateRole {
+public class CandidateRole implements Role {
 
 
     private ElectionTaskFuture electionTaskFuture;

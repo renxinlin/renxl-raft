@@ -48,6 +48,8 @@ public class NodeBuilder {
      */
     private DefaultConfig config = new DefaultConfig();
 
+    private NodeStore nodeStore ;
+
     /**
      * Starts as standby or not.
      * <p>
@@ -91,31 +93,6 @@ public class NodeBuilder {
         this.eventBus = new EventBus("eventBus:" + selfId.getId());
     }
 
-    /**
-     * 启动serverlanucher设置的属性 用于加入集群前的相关catch up过程
-     * Set standby.
-     *
-     * @param standby standby
-     * @return this
-     */
-    public NodeBuilder setStandby(boolean standby) {
-        this.standby = standby;
-        return this;
-    }
-
-
-
-    /**
-     * Set scheduler.
-     *
-     * @param scheduler scheduler
-     * @return this
-     */
-    NodeBuilder setScheduler(@Nonnull Scheduler scheduler) {
-        Preconditions.checkNotNull(scheduler);
-        this.scheduler = scheduler;
-        return this;
-    }
 
     /**
      * Set task executor.
@@ -168,6 +145,7 @@ public class NodeBuilder {
         context.setLog(null);
         context.setNodeWorker(new NodeWorker());
         context.setConnector(createNioConnector(context.getConfig().getRaftPort()));
+        context.setNodeStore(nodeStore ==null ? new NodeStoreImpl(0,null):nodeStore);
         return context;
     }
 
