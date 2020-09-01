@@ -1,4 +1,4 @@
-package com.renxl.club.raft.core;
+package com.renxl.club.raft.core.store;
 
 import com.renxl.club.raft.core.member.NodeId;
 

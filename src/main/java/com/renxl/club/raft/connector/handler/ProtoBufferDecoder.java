@@ -46,6 +46,7 @@ public class ProtoBufferDecoder extends ByteToMessageDecoder {
         switch (type) {
             case APPEND_ENTRY_REQUEST:
                 AppendEntryRequest appendEntryRequest = ProtoStuffUtil.deserialize(bytes, AppendEntryRequest.class);
+                appendEntryRequest.setChannel(ctx.channel());
                 eventBus.post(appendEntryRequest);
                 break;
             case APPEND_ENTRY_RESPONSE:
@@ -54,6 +55,7 @@ public class ProtoBufferDecoder extends ByteToMessageDecoder {
                 break;
             case ELECTION_REQUEST:
                 ElectionRequest electionRequest = ProtoStuffUtil.deserialize(bytes, ElectionRequest.class);
+                electionRequest.setChannel(ctx.channel());
                 eventBus.post(electionRequest);
                 break;
             case ELECTION_RESPONSE:

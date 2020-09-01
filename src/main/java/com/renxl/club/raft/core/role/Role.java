@@ -7,4 +7,9 @@ package com.renxl.club.raft.core.role;
  */
 public interface Role {
 
+    int getTerm();
+
+    void setTerm(int term);
+
+    boolean cancelLogOrElection();
 }

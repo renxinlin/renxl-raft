@@ -33,6 +33,8 @@ public class FollowerRole implements Role{
     private NodeId votedFor;
 
 
-
-
+    @Override
+    public boolean cancelLogOrElection() {
+        return electionTaskFuture.cancel(false);
+    }
 }

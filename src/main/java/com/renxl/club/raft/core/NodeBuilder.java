@@ -9,7 +9,10 @@ import com.renxl.club.raft.core.member.Endpoint;
 import com.renxl.club.raft.core.member.MemberGroup;
 import com.renxl.club.raft.core.member.NodeId;
 import com.renxl.club.raft.core.scheduled.DefaultScheduler;
+import com.renxl.club.raft.core.scheduled.NodeWorker;
 import com.renxl.club.raft.core.scheduled.Scheduler;
+import com.renxl.club.raft.core.store.NodeStore;
+import com.renxl.club.raft.core.store.NodeStoreImpl;
 import com.renxl.club.raft.log.Log;
 import lombok.Data;
 
@@ -48,7 +51,7 @@ public class NodeBuilder {
      */
     private DefaultConfig config = new DefaultConfig();
 
-    private NodeStore nodeStore ;
+    private NodeStore nodeStore;
 
     /**
      * Starts as standby or not.
@@ -145,7 +148,7 @@ public class NodeBuilder {
         context.setLog(null);
         context.setNodeWorker(new NodeWorker());
         context.setConnector(createNioConnector(context.getConfig().getRaftPort()));
-        context.setNodeStore(nodeStore ==null ? new NodeStoreImpl(0,null):nodeStore);
+        context.setNodeStore(nodeStore == null ? new NodeStoreImpl(0, null) : nodeStore);
         return context;
     }
 
@@ -156,7 +159,7 @@ public class NodeBuilder {
      * @return nio connector
      */
     private Connector createNioConnector(int port) {
-        return new NioConnector(selfId, eventBus, port);
+        return new NioConnector(eventBus, port);
     }
 
 

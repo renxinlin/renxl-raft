@@ -20,8 +20,8 @@ public class LeaderRole implements Role{
     private LogReplicationFuture logReplicationFuture;
 
 
-    private final RoleEnum name;
-    private final int term;
+    private  RoleEnum name;
+    private  int term;
 
     public LeaderRole(LogReplicationFuture logReplicationFuture, RoleEnum name, int term) {
         this.logReplicationFuture = logReplicationFuture;
@@ -30,7 +30,8 @@ public class LeaderRole implements Role{
     }
 
 
-    public void cancel(){
-        logReplicationFuture.cancel(false);
-    }
-}
+
+    @Override
+    public boolean cancelLogOrElection() {
+        return logReplicationFuture.cancel(false);
+    }}

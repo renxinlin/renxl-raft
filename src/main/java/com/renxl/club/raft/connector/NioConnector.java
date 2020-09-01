@@ -4,11 +4,13 @@ package com.renxl.club.raft.connector;
 import com.google.common.eventbus.EventBus;
 import com.renxl.club.raft.connector.handler.ProtoBufferDecoder;
 import com.renxl.club.raft.connector.handler.ProtoBufferEncoder;
-import com.renxl.club.raft.core.member.NodeId;
+import com.renxl.club.raft.core.member.Endpoint;
+import com.renxl.club.raft.core.message.AppendEntryRequest;
+import com.renxl.club.raft.core.message.ElectionRequest;
 import io.netty.bootstrap.ServerBootstrap;
+import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelPipeline;
-import io.netty.channel.group.DefaultChannelGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
@@ -17,11 +19,13 @@ import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.annotation.concurrent.ThreadSafe;
+import java.util.List;
 
 import static com.renxl.club.raft.connector.message.LengthFieldBasedFrameDecoderConfig.*;
 
 /**
  * 处理 选举 日志 -压缩-》 快照
+ * @author mac
  */
 @ThreadSafe
 @Slf4j
@@ -122,15 +126,16 @@ public class NioConnector implements Connector {
      * c 。。   ~
      * d 。。 。
      */
-    private DefaultChannelGroup inchannels;
     private DefaultChannelGroup outchannels;
 
 
-    public NioConnector(NodeId selfNodeId, EventBus eventBus, int port) {
+    public NioConnector( EventBus eventBus, int port) {
         // 0表示采用系统配置
+
         this.workerNioEventLoopGroup = new NioEventLoopGroup();
         this.eventBus = eventBus;
         this.port = port;
+        outchannels = new DefaultChannelGroup(eventBus);
 
 
     }
@@ -161,5 +166,40 @@ public class NioConnector implements Connector {
         bossNioEventLoopGroup.shutdownGracefully();
         workerNioEventLoopGroup.shutdownGracefully();
     }
+
+
+    /////////////////////////////////////////////////
+    //
+    //
+    //  以下为消息发送部分
+    //
+    //
+    /////////////////////////////////////////////////
+
+
+    @Override
+    public void sendElectionRequest(ElectionRequest electionRequest, List<Endpoint> endpoints) {
+        for (Endpoint endpoint:endpoints) {
+            ChannelFuture channelFuture = outchannels.getChannel(endpoint).writeAndFlush(electionRequest);
+            channelFuture.addListener(listener->{
+                if (!listener.isSuccess()){
+                    log.info("send election error");
+                }
+            });
+        }
+    }
+
+    @Override
+    public void sendAppendEntryRequest(AppendEntryRequest appendEntryRequest, List<Endpoint> endpoints) {
+        for (Endpoint endpoint:endpoints) {
+            ChannelFuture channelFuture = outchannels.getChannel(endpoint).writeAndFlush(appendEntryRequest);
+            channelFuture.addListener(listener->{
+                if (!listener.isSuccess()){
+                    log.info("send election error");
+                }
+            });
+        }
+    }
+
 
 }
