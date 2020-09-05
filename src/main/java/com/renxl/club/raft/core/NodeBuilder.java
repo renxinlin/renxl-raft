@@ -6,6 +6,7 @@ import com.renxl.club.raft.config.DefaultConfig;
 import com.renxl.club.raft.connector.Connector;
 import com.renxl.club.raft.connector.NioConnector;
 import com.renxl.club.raft.core.member.Endpoint;
+import com.renxl.club.raft.core.member.Member;
 import com.renxl.club.raft.core.member.MemberGroup;
 import com.renxl.club.raft.core.member.NodeId;
 import com.renxl.club.raft.core.scheduled.DefaultScheduler;
@@ -147,7 +148,8 @@ public class NodeBuilder {
         // TODO 选举完毕 在做日志持久化
         context.setLog(null);
         context.setNodeWorker(new NodeWorker());
-        context.setConnector(createNioConnector(context.getConfig().getRaftPort()));
+        Member member = context.getMemberGroup().getMembers().get(context.getMemberGroup().getSelf());
+        context.setConnector(createNioConnector(member.getEndpoint().getAddress().getPort()));
         context.setNodeStore(nodeStore == null ? new NodeStoreImpl(0, null) : nodeStore);
         return context;
     }

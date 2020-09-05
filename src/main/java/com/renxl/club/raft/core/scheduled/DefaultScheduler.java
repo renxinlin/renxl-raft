@@ -41,7 +41,7 @@ public class DefaultScheduler implements Scheduler {
         }
 
 
-        if (logReplicationInterval < 2 * minElectionTimeout || logReplicationInterval < 200) {
+        if (logReplicationInterval > 2 * minElectionTimeout || logReplicationInterval > 1500) {
             throw new IllegalArgumentException("in order to make sure cluster stable ,please make sure minElectionTimeout more bigger than [>>] minElectionTimeout ");
 
         }

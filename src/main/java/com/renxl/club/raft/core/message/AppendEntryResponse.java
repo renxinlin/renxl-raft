@@ -1,5 +1,6 @@
 package com.renxl.club.raft.core.message;
 
+import com.renxl.club.raft.connector.message.RpcMessage;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -17,9 +18,10 @@ import lombok.experimental.Accessors;
 @Data
 @EqualsAndHashCode
 @Accessors(chain = true)
-public class AppendEntryResponse {
+public class AppendEntryResponse extends RpcMessage {
 
-    private Boolean append;
+    private Boolean success;
+    private int term;
 
 
 

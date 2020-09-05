@@ -8,6 +8,7 @@ import com.renxl.club.raft.core.member.Endpoint;
 import com.renxl.club.raft.core.message.AppendEntryRequest;
 import com.renxl.club.raft.core.message.ElectionRequest;
 import io.netty.bootstrap.ServerBootstrap;
+import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelPipeline;
@@ -25,6 +26,7 @@ import static com.renxl.club.raft.connector.message.LengthFieldBasedFrameDecoder
 
 /**
  * 处理 选举 日志 -压缩-》 快照
+ *
  * @author mac
  */
 @ThreadSafe
@@ -129,7 +131,7 @@ public class NioConnector implements Connector {
     private DefaultChannelGroup outchannels;
 
 
-    public NioConnector( EventBus eventBus, int port) {
+    public NioConnector(EventBus eventBus, int port) {
         // 0表示采用系统配置
 
         this.workerNioEventLoopGroup = new NioEventLoopGroup();
@@ -156,8 +158,14 @@ public class NioConnector implements Connector {
                         pipeline.addLast(new ProtoBufferDecoder(eventBus));
                     }
                 });
-        log.debug("node listen on port {}", port);
-        serverBootstrap.bind(port).sync();
+        ChannelFuture sync = serverBootstrap.bind(port).sync();
+        sync.addListener((listen)->{
+            boolean success = listen.isSuccess();
+            if(success){
+                log.debug("node listen on port {}", port);
+
+            }
+        } );
     }
 
     @Override
@@ -179,23 +187,38 @@ public class NioConnector implements Connector {
 
     @Override
     public void sendElectionRequest(ElectionRequest electionRequest, List<Endpoint> endpoints) {
-        for (Endpoint endpoint:endpoints) {
-            ChannelFuture channelFuture = outchannels.getChannel(endpoint).writeAndFlush(electionRequest);
-            channelFuture.addListener(listener->{
-                if (!listener.isSuccess()){
-                    log.info("send election error");
+        for (Endpoint endpoint : endpoints) {
+            try {
+                Channel channel = outchannels.getChannel(endpoint);
+                if (channel == null) {
+                    log.info("get channel error");
+                    return;
                 }
-            });
+                ChannelFuture channelFuture = channel.writeAndFlush(electionRequest);
+                channelFuture.addListener(listener -> {
+                    if (!listener.isSuccess()) {
+                        log.info("send election error");
+                    }
+                });
+                log.info("send electionRequest to [{}] success");
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
     }
 
     @Override
     public void sendAppendEntryRequest(AppendEntryRequest appendEntryRequest, List<Endpoint> endpoints) {
-        for (Endpoint endpoint:endpoints) {
-            ChannelFuture channelFuture = outchannels.getChannel(endpoint).writeAndFlush(appendEntryRequest);
-            channelFuture.addListener(listener->{
-                if (!listener.isSuccess()){
-                    log.info("send election error");
+        for (Endpoint endpoint : endpoints) {
+            Channel channel = outchannels.getChannel(endpoint);
+            if (channel == null) {
+                log.info("get channel error");
+                return;
+            }
+            ChannelFuture channelFuture = channel.writeAndFlush(appendEntryRequest);
+            channelFuture.addListener(listener -> {
+                if (!listener.isSuccess()) {
+                    log.info(" sendAppendEntryRequest error");
                 }
             });
         }

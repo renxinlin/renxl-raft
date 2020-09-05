@@ -1,7 +1,6 @@
 package com.renxl.club.raft.core.role;
 
 import com.renxl.club.raft.core.scheduled.LogReplicationFuture;
-import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 
@@ -11,7 +10,6 @@ import lombok.experimental.Accessors;
  * @Version 1.0.0
  */
 
-@Data
 @EqualsAndHashCode
 @Accessors(chain = true)
 public class LeaderRole implements Role{
@@ -29,9 +27,43 @@ public class LeaderRole implements Role{
         this.term = term;
     }
 
+    public LogReplicationFuture getLogReplicationFuture() {
+        return logReplicationFuture;
+    }
 
+    public void setLogReplicationFuture(LogReplicationFuture logReplicationFuture) {
+        this.logReplicationFuture = logReplicationFuture;
+    }
+
+    public RoleEnum getName() {
+        return name;
+    }
+
+    public void setName(RoleEnum name) {
+        this.name = name;
+    }
+
+    @Override
+    public int getTerm() {
+        return term;
+    }
+
+    @Override
+    public void setTerm(int term) {
+        this.term = term;
+    }
 
     @Override
     public boolean cancelLogOrElection() {
         return logReplicationFuture.cancel(false);
-    }}
+    }
+
+    @Override
+    public String toString() {
+        return "LeaderRole{" +
+                "logReplicationFuture=" + logReplicationFuture +
+                ", name=" + name +
+                ", term=" + term +
+                '}';
+    }
+}

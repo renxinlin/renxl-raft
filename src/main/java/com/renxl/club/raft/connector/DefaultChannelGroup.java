@@ -12,7 +12,6 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.handler.codec.LengthFieldBasedFrameDecoder;
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.concurrent.ConcurrentHashMap;
@@ -63,32 +62,38 @@ public class DefaultChannelGroup {
         return channel;
     }
 
-    @SneakyThrows
     private Channel connect(Address address, NodeId nodeId) {
-        Bootstrap bootstrap = new Bootstrap()
-                .group(workerGroup)
-                .channel(NioSocketChannel.class)
-                // 防止小包延迟
-                .option(ChannelOption.TCP_NODELAY, true)
-                .handler(new ChannelInitializer<SocketChannel>() {
-                    @Override
-                    protected void initChannel(SocketChannel ch) throws Exception {
-                        ChannelPipeline pipeline = ch.pipeline();
+        Channel nettyChannel = null;
+        try {
+            Bootstrap bootstrap = new Bootstrap()
+                    .group(workerGroup)
+                    .channel(NioSocketChannel.class)
+                    // 防止小包延迟
+                    .option(ChannelOption.TCP_NODELAY, true)
+                    .handler(new ChannelInitializer<SocketChannel>() {
+                        @Override
+                        protected void initChannel(SocketChannel ch) throws Exception {
+                            ChannelPipeline pipeline = ch.pipeline();
 
-                        pipeline.addLast(new ProtoBufferEncoder(eventBus));
-                        pipeline.addLast(new LengthFieldBasedFrameDecoder(MAX_FRAME_LENGTH, LENGTH_FIELD_OFFSET, LENGTH_FIELD_LENGTH, LENGTH_ADJUSTMENT, INITIAL_BYTES_TO_STRIP, false));
-                        pipeline.addLast(new ProtoBufferDecoder(eventBus));
-                    }
-                });
-        ChannelFuture future = bootstrap.connect(address.getIp(), address.getPort()).sync();
-        if (!future.isSuccess()) {
-            throw new ChannelException("failed to connect", future.cause());
+                            pipeline.addLast(new ProtoBufferEncoder(eventBus));
+                            pipeline.addLast(new LengthFieldBasedFrameDecoder(MAX_FRAME_LENGTH, LENGTH_FIELD_OFFSET, LENGTH_FIELD_LENGTH, LENGTH_ADJUSTMENT, INITIAL_BYTES_TO_STRIP, false));
+                            pipeline.addLast(new ProtoBufferDecoder(eventBus));
+                        }
+                    });
+            ChannelFuture future = bootstrap.connect(address.getIp(), address.getPort()).sync();
+            if (!future.isSuccess()) {
+                throw new ChannelException("failed to connect", future.cause());
+            }else {
+                log.info("get channel success ");
+            }
+            nettyChannel = future.channel();
+            channels.put(nodeId,nettyChannel);
+            nettyChannel.closeFuture().addListener((ChannelFutureListener) cf -> {
+                channels.remove(nodeId);
+            });
+        } catch (Exception e) {
+            e.printStackTrace();
         }
-        Channel nettyChannel = future.channel();
-        channels.put(nodeId,nettyChannel);
-        nettyChannel.closeFuture().addListener((ChannelFutureListener) cf -> {
-            channels.remove(nodeId);
-        });
         return nettyChannel;
     }
 

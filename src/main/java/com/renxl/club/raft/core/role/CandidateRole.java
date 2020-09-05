@@ -2,7 +2,6 @@ package com.renxl.club.raft.core.role;
 
 import com.renxl.club.raft.core.scheduled.ElectionTaskFuture;
 import lombok.AllArgsConstructor;
-import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 
@@ -12,7 +11,6 @@ import lombok.experimental.Accessors;
  * @Version 1.0.0
  */
 @AllArgsConstructor
-@Data
 @EqualsAndHashCode
 @Accessors(chain = true)
 public class CandidateRole implements Role {
@@ -30,7 +28,39 @@ public class CandidateRole implements Role {
     private  int votesCount;
 
 
+    public ElectionTaskFuture getElectionTaskFuture() {
+        return electionTaskFuture;
+    }
 
+    public void setElectionTaskFuture(ElectionTaskFuture electionTaskFuture) {
+        this.electionTaskFuture = electionTaskFuture;
+    }
+
+    public RoleEnum getName() {
+        return name;
+    }
+
+    public void setName(RoleEnum name) {
+        this.name = name;
+    }
+
+    @Override
+    public int getTerm() {
+        return term;
+    }
+
+    @Override
+    public void setTerm(int term) {
+        this.term = term;
+    }
+
+    public int getVotesCount() {
+        return votesCount;
+    }
+
+    public void setVotesCount(int votesCount) {
+        this.votesCount = votesCount;
+    }
 
     @Override
     public boolean cancelLogOrElection() {

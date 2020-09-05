@@ -28,7 +28,7 @@ public class DefaultConfig implements Config {
     private int logReplicationInterval = 1000;
 
 
-    private int raftPort = 5200;
+    private int raftPort ;
 
 
 }

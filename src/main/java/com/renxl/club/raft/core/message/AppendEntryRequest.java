@@ -22,7 +22,6 @@ public class AppendEntryRequest extends RpcMessage {
 
 
     private int term;
-    private Boolean success;
     private Channel channel;
 
 }

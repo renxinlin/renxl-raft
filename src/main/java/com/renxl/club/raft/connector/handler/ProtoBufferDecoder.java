@@ -38,7 +38,7 @@ public class ProtoBufferDecoder extends ByteToMessageDecoder {
         //读取body
         int size = in.readableBytes();
 
-        log.info("msg size [] and length [] ",size,length);
+        log.info("msg type [{}] size [{}] and length [{}] ",type,size,length);
         byte[] bytes = new byte[size];
         in.readBytes(bytes);
 
@@ -64,6 +64,7 @@ public class ProtoBufferDecoder extends ByteToMessageDecoder {
                 break;
             default:
                 log.info(" un expect messgae received ");
+
         }
     }
 

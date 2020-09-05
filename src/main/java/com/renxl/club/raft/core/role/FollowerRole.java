@@ -3,7 +3,6 @@ package com.renxl.club.raft.core.role;
 import com.renxl.club.raft.core.member.NodeId;
 import com.renxl.club.raft.core.scheduled.ElectionTaskFuture;
 import lombok.AllArgsConstructor;
-import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.experimental.Accessors;
@@ -14,12 +13,10 @@ import lombok.experimental.Accessors;
  * @Version 1.0.0
  */
 
-@Data
 @EqualsAndHashCode
 @Accessors(chain = true)
 @AllArgsConstructor
 @NoArgsConstructor
-
 public class FollowerRole implements Role{
 
     private RoleEnum name;
@@ -32,9 +29,53 @@ public class FollowerRole implements Role{
     //  投过票的节点 有可能为null
     private NodeId votedFor;
 
+    public RoleEnum getName() {
+        return name;
+    }
+
+    public void setName(RoleEnum name) {
+        this.name = name;
+    }
+
+    public ElectionTaskFuture getElectionTaskFuture() {
+        return electionTaskFuture;
+    }
+
+    public void setElectionTaskFuture(ElectionTaskFuture electionTaskFuture) {
+        this.electionTaskFuture = electionTaskFuture;
+    }
+
+    public NodeId getLeaderId() {
+        return leaderId;
+    }
+
+    public void setLeaderId(NodeId leaderId) {
+        this.leaderId = leaderId;
+    }
+
+    public NodeId getVotedFor() {
+        return votedFor;
+    }
+
+    public void setVotedFor(NodeId votedFor) {
+        this.votedFor = votedFor;
+    }
+
+    @Override
+    public int getTerm() {
+        return 0;
+    }
+
+    @Override
+    public void setTerm(int term) {
+
+    }
 
     @Override
     public boolean cancelLogOrElection() {
         return electionTaskFuture.cancel(false);
     }
+
+
+
 }

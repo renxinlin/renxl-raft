@@ -18,11 +18,14 @@ public class Launcher {
 
 
     public static void main(String[] args) {
-        Endpoint a = new Endpoint(new NodeId("A"), new Address("127.0,0.1", 20000));
-        Endpoint b = new Endpoint(new NodeId("B"), new Address("127.0,0.1", 20001));
-        Endpoint c = new Endpoint(new NodeId("C"), new Address("127.0,0.1", 20002));
+        Endpoint a = new Endpoint(new NodeId("A"), new Address("127.0.0.1", 18777));
+        Endpoint b = new Endpoint(new NodeId("B"), new Address("127.0.0.1", 18778));
+        Endpoint c = new Endpoint(new NodeId("C"), new Address("127.0.0.1", 18779));
        List<Endpoint>  endpoints = new ArrayList<>();
-        NodeBuilder nodeBuilder = new NodeBuilder(endpoints,new NodeId("A"));
+        endpoints.add(a);
+        endpoints.add(b);
+        endpoints.add(c);
+        NodeBuilder nodeBuilder = new NodeBuilder(endpoints,new NodeId("B"));
         Node node = nodeBuilder.build();
         node.start();
     }
