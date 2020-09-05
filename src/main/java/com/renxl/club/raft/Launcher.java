@@ -26,6 +26,7 @@ public class Launcher {
         endpoints.add(b);
         endpoints.add(c);
         NodeBuilder nodeBuilder = new NodeBuilder(endpoints,new NodeId("B"));
+//        NodeBuilder nodeBuilder = new NodeBuilder(endpoints,new NodeId("A"));
         Node node = nodeBuilder.build();
         node.start();
     }
