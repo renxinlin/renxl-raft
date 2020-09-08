@@ -29,18 +29,32 @@ import java.security.PrivilegedAction;
  */
 public class FileApi {
     /**
-     * 4KB
+     * 4KB pagecache 的大小
      */
     private static final int OS_PAGE_SIZE = 4096;
 
+    //  数据文件的大小 1G
+    private int dataFileSize = 1024*1024*1024;
+    // 索引文件大小   50M
+    private int indexFileSize = 1024*1024 * 50;
+
     private final File file;
-
+    //
+    //
+    //
+    //
+    //
     private final RandomAccessFile randomAccessFile;
-
+    //
+    //
+    //
+    //
+    //
     private final FileChannel fileChannel;
-    /**
-     * MappedByteBuffer这种内存映射的方式有几个限制，其中之一是一次只能映射1.5~2G 的文件至用户态的虚拟内存
-     */
+    //
+    //
+    //
+    //
     private final MappedByteBuffer mappedByteBuffer;
     private final int filesize = 0;
     Logger log = LoggerFactory.getLogger(FileApi.class);
@@ -56,6 +70,8 @@ public class FileApi {
         this.fileChannel = new RandomAccessFile(file, "rw").getChannel();
         mappedByteBuffer = fileChannel.map(FileChannel.MapMode.READ_WRITE, 0, filesize);
     }
+
+
 
 
     public static void ensureDirOK(final String dirName) {
@@ -122,6 +138,11 @@ public class FileApi {
     }
 
     public static void main(String[] args) {
+        FileApi fileApi = new FileApi("/Users/mac/renxl20200907.txt",100000);
+        fileApi.mappedByteBuffer.put("hi".getBytes(),0,"hi".getBytes().length);
+        byte[] hi = new byte[11];
+        fileApi.mappedByteBuffer.get(hi,0,"hi".length());
+        System.out.println();
 
     }
 

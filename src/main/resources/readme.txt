@@ -27,6 +27,40 @@ commitlog 002000
 
 
 
+data.file
+kind index term length bytes
 
 
+index.file
+
+minEntryIndex maxEntryIndex
+offset  kind term
+
+
+mapperedfilebuffer 限制
+1 定长映射
+2 大小最好不要过上线
+3 相比transfer更适合小data
+
+
+复制状态  matchindex nextindex
+
+
+log commitIndex
+
+
+sequence
+
+  // 日志条目
+    private final EntriesFile entriesFile;
+    // 日志条目索引
+    private final EntryIndexFile entryIndexFile;
+    // append 已经完毕尚未提交的日志条目
+    private final LinkedList<Entry> pendingEntries = new LinkedList<>();
+
+
+
+    logindexoffset
+    last
+    next
 

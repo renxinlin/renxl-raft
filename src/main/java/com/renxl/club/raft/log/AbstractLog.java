@@ -1,6 +1,7 @@
 package com.renxl.club.raft.log;
 
 import com.google.common.eventbus.EventBus;
+import com.renxl.club.raft.log.sequence.Sequence;
 import com.renxl.club.raft.log.snapshot.Snapshot;
 import com.renxl.club.raft.log.statemachine.StateMachine;
 
@@ -12,9 +13,14 @@ import com.renxl.club.raft.log.statemachine.StateMachine;
 public abstract class AbstractLog implements Log{
 
     protected final EventBus            eventBus;
+
     protected       int                 commitIndex = 0;
+
     protected       StateMachine        stateMachine;
+
     private         Snapshot            snapshot;
+
+    protected Sequence entrySequence;
 
 
 
