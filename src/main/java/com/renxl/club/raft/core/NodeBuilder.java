@@ -145,7 +145,6 @@ public class NodeBuilder {
         context.setEventBus(eventBus == null ? new EventBus() : eventBus);
 
 
-        // TODO 选举完毕 在做日志持久化
         context.setLog(null);
         context.setNodeWorker(new NodeWorker());
         Member member = context.getMemberGroup().getMembers().get(context.getMemberGroup().getSelf());

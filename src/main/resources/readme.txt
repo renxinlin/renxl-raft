@@ -26,15 +26,31 @@ commitlog 002000
 
 
 
+currentLocation = 20 52
+
+data.file
+kind index term length bytes
+kind index term length bytes
+
+
+
+
+currentLocation = 11
 
 data.file
 kind index term length bytes
 
 
+
 index.file
 
-minEntryIndex maxEntryIndex
-offset  kind term
+minEntryIndex maxEntryIndex   12   18
+---------------------------|
+offset  kind term   20
+offset  kind term   52
+
+offset  kind term   11
+
 
 
 mapperedfilebuffer 限制

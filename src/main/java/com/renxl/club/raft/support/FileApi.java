@@ -15,6 +15,7 @@ import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  *
@@ -33,12 +34,14 @@ public class FileApi {
      */
     private static final int OS_PAGE_SIZE = 4096;
 
-    //  数据文件的大小 1G
-    private int dataFileSize = 1024*1024*1024;
     // 索引文件大小   50M
-    private int indexFileSize = 1024*1024 * 50;
+    //  数据文件的大小 1G
+    private int dataFileSize = 1024*1024*50;
+
 
     private final File file;
+
+    protected final AtomicInteger wrotePosition = new AtomicInteger(0);
     //
     //
     //
@@ -56,22 +59,39 @@ public class FileApi {
     //
     //
     private final MappedByteBuffer mappedByteBuffer;
-    private final int filesize = 0;
     Logger log = LoggerFactory.getLogger(FileApi.class);
-    private long fileSize;
-    private String fileName;
+    private Integer fileName;
+
 
 
     @SneakyThrows
-    public FileApi(String filename, int filesize) {
-        this.file = new File(filename);
+    public FileApi(String dir,Integer filename ,int filesize) {
+        this.dataFileSize = filesize;
+        this.fileName = fileName;
+        this.file = new File(dir+filename);
         ensureDirOK(this.file.getParent());
         this.randomAccessFile = new RandomAccessFile(file, "rw");
         this.fileChannel = new RandomAccessFile(file, "rw").getChannel();
-        mappedByteBuffer = fileChannel.map(FileChannel.MapMode.READ_WRITE, 0, filesize);
+        mappedByteBuffer = fileChannel.map(FileChannel.MapMode.READ_WRITE, 0, dataFileSize);
+        // 每1M空间刷盘一次
+        warmMappedFile(FlushDiskType.SYNC_FLUSH,2);
     }
 
+    @SneakyThrows
+    public FileApi(String existDir, Integer existFileName) {
+        this.file = new File(existFileName.toString());
+        // TODO 验证dataFileSize
+        this.dataFileSize = (int)file.getTotalSpace();
+        this.fileName = existFileName;
 
+        this.randomAccessFile = new RandomAccessFile(file, "rw");
+        this.fileChannel = new RandomAccessFile(file, "rw").getChannel();
+        mappedByteBuffer = fileChannel.map(FileChannel.MapMode.READ_WRITE, 0, dataFileSize);
+        // TODO 验证此时能不能写入假值
+        warmMappedFile(FlushDiskType.SYNC_FLUSH,2);
+
+
+    }
 
 
     public static void ensureDirOK(final String dirName) {
@@ -85,7 +105,7 @@ public class FileApi {
 
 
     /**
-     * 释放资源
+     * todo 释放资源
      *
      * @param buffer
      */
@@ -137,23 +157,19 @@ public class FileApi {
         });
     }
 
-    public static void main(String[] args) {
-        FileApi fileApi = new FileApi("/Users/mac/renxl20200907.txt",100000);
-        fileApi.mappedByteBuffer.put("hi".getBytes(),0,"hi".getBytes().length);
-        byte[] hi = new byte[11];
-        fileApi.mappedByteBuffer.get(hi,0,"hi".length());
-        System.out.println();
 
-    }
-
-
+    /**
+     * 隔几个pagecache 进行物理内存到虚拟内存的映射建立
+     * @param type
+     * @param pages
+     */
     public void warmMappedFile(FlushDiskType type, int pages) {
         long beginTime = System.currentTimeMillis();
-        // 搞一套新指针
+        // 搞一套新指针 共享缓冲 但独立指针
         ByteBuffer byteBuffer = this.mappedByteBuffer.slice();
         int flush = 0;
         long time = System.currentTimeMillis();
-        for (int i = 0, j = 0; i < this.fileSize; i += OS_PAGE_SIZE, j++) {
+        for (int i = 0, j = 0; i < this.dataFileSize; i += OS_PAGE_SIZE, j++) {
             byteBuffer.put(i, (byte) 0);
             // force flush when flush disk type is sync
             if (type == FlushDiskType.SYNC_FLUSH) {
@@ -195,13 +211,13 @@ public class FileApi {
         final long address = ((DirectBuffer) (this.mappedByteBuffer)).address();
         Pointer pointer = new Pointer(address);
         {
-            int ret = LibC.INSTANCE.mlock(pointer, new NativeLong(this.fileSize));
-            log.info("mlock {} {} {} ret = {} time consuming = {}", address, this.fileName, this.fileSize, ret, System.currentTimeMillis() - beginTime);
+            int ret = LibC.INSTANCE.mlock(pointer, new NativeLong(this.dataFileSize));
+            log.info("mlock {} {} {} ret = {} time consuming = {}", address, this.fileName, this.dataFileSize, ret, System.currentTimeMillis() - beginTime);
         }
 
         {
-            int ret = LibC.INSTANCE.madvise(pointer, new NativeLong(this.fileSize), LibC.MADV_WILLNEED);
-            log.info("madvise {} {} {} ret = {} time consuming = {}", address, this.fileName, this.fileSize, ret, System.currentTimeMillis() - beginTime);
+            int ret = LibC.INSTANCE.madvise(pointer, new NativeLong(this.dataFileSize), LibC.MADV_WILLNEED);
+            log.info("madvise {} {} {} ret = {} time consuming = {}", address, this.fileName, this.dataFileSize, ret, System.currentTimeMillis() - beginTime);
         }
     }
 
@@ -209,7 +225,26 @@ public class FileApi {
         final long beginTime = System.currentTimeMillis();
         final long address = ((DirectBuffer) (this.mappedByteBuffer)).address();
         Pointer pointer = new Pointer(address);
-        int ret = LibC.INSTANCE.munlock(pointer, new NativeLong(this.fileSize));
-        log.info("munlock {} {} {} ret = {} time consuming = {}", address, this.fileName, this.fileSize, ret, System.currentTimeMillis() - beginTime);
+        int ret = LibC.INSTANCE.munlock(pointer, new NativeLong(this.dataFileSize));
+        log.info("munlock {} {} {} ret = {} time consuming = {}", address, this.fileName, this.dataFileSize, ret, System.currentTimeMillis() - beginTime);
+    }
+
+
+
+    public void write(int offset,byte[] commandBytes) {
+        mappedByteBuffer.put(commandBytes,offset,commandBytes.length);
+    }
+
+    public void writeInt(int offset,int data) {
+        mappedByteBuffer.putInt(offset,data);
+
+    }
+
+    public Integer getFileName() {
+        return fileName;
+    }
+
+    public void setFileName(Integer fileName) {
+        this.fileName = fileName;
     }
 }

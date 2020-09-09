@@ -1,0 +1,82 @@
+2020-09-08 20:47:16.091 [INFO ] [main ] [renxl.club.raft.support.FileApi:] mapped file warm-up done, force to disk, mappedFile=null, costTime=0
+2020-09-08 20:47:16.108 [INFO ] [main ] [renxl.club.raft.support.FileApi:] mapped file warm-up done. mappedFile=null, costTime=27
+2020-09-08 20:47:16.304 [INFO ] [main ] [renxl.club.raft.support.FileApi:] mlock 5063659520 null 0 ret = 0 time consuming = 194
+2020-09-08 20:47:16.305 [INFO ] [main ] [renxl.club.raft.support.FileApi:] madvise 5063659520 null 0 ret = 0 time consuming = 196
+2020-09-08 20:48:02.325 [INFO ] [main ] [renxl.club.raft.support.FileApi:] mapped file warm-up done, force to disk, mappedFile=null, costTime=0
+2020-09-08 20:48:02.328 [INFO ] [main ] [renxl.club.raft.support.FileApi:] mapped file warm-up done. mappedFile=null, costTime=7
+2020-09-08 20:48:02.433 [INFO ] [main ] [renxl.club.raft.support.FileApi:] mlock 4829614080 null 0 ret = 0 time consuming = 105
+2020-09-08 20:48:02.433 [INFO ] [main ] [renxl.club.raft.support.FileApi:] madvise 4829614080 null 0 ret = 0 time consuming = 105
+2020-09-08 20:48:42.334 [INFO ] [main ] [renxl.club.raft.support.FileApi:] mapped file warm-up done, force to disk, mappedFile=null, costTime=0
+2020-09-08 20:48:42.339 [INFO ] [main ] [renxl.club.raft.support.FileApi:] mapped file warm-up done. mappedFile=null, costTime=9
+2020-09-08 20:48:42.449 [INFO ] [main ] [renxl.club.raft.support.FileApi:] mlock 4873420800 null 0 ret = 0 time consuming = 109
+2020-09-08 20:48:42.450 [INFO ] [main ] [renxl.club.raft.support.FileApi:] madvise 4873420800 null 0 ret = 0 time consuming = 109
+2020-09-08 20:49:30.191 [INFO ] [main ] [renxl.club.raft.support.FileApi:] mapped file warm-up done, force to disk, mappedFile=null, costTime=0
+2020-09-08 20:49:30.196 [INFO ] [main ] [renxl.club.raft.support.FileApi:] mapped file warm-up done. mappedFile=null, costTime=11
+2020-09-08 20:49:30.357 [INFO ] [main ] [renxl.club.raft.support.FileApi:] mlock 4524646400 null 0 ret = 0 time consuming = 160
+2020-09-08 20:49:30.357 [INFO ] [main ] [renxl.club.raft.support.FileApi:] madvise 4524646400 null 0 ret = 0 time consuming = 161
+2020-09-08 20:58:16.283 [INFO ] [main ] [renxl.club.raft.support.FileApi:] mapped file warm-up done, force to disk, mappedFile=null, costTime=1
+2020-09-08 20:58:16.288 [INFO ] [main ] [renxl.club.raft.support.FileApi:] mapped file warm-up done. mappedFile=null, costTime=13
+2020-09-08 20:58:16.921 [INFO ] [main ] [renxl.club.raft.support.FileApi:] mlock 4952621056 null 0 ret = 0 time consuming = 633
+2020-09-08 20:58:16.921 [INFO ] [main ] [renxl.club.raft.support.FileApi:] madvise 4952621056 null 0 ret = 0 time consuming = 633
+2020-09-08 21:01:51.580 [INFO ] [main ] [renxl.club.raft.support.FileApi:] mapped file warm-up done, force to disk, mappedFile=null, costTime=0
+2020-09-08 21:01:51.588 [INFO ] [main ] [renxl.club.raft.support.FileApi:] mapped file warm-up done. mappedFile=null, costTime=25
+2020-09-08 21:01:53.103 [INFO ] [main ] [renxl.club.raft.support.FileApi:] mlock 4777742336 null 0 ret = 0 time consuming = 1513
+2020-09-08 21:01:53.103 [INFO ] [main ] [renxl.club.raft.support.FileApi:] madvise 4777742336 null 0 ret = 0 time consuming = 1514
+2020-09-08 21:04:05.396 [INFO ] [main ] [renxl.club.raft.support.FileApi:] mapped file warm-up done, force to disk, mappedFile=null, costTime=0
+2020-09-08 21:04:05.399 [INFO ] [main ] [renxl.club.raft.support.FileApi:] mapped file warm-up done. mappedFile=null, costTime=7
+2020-09-08 21:04:06.315 [INFO ] [main ] [renxl.club.raft.support.FileApi:] mlock 4648177664 null 0 ret = 0 time consuming = 916
+2020-09-08 21:04:06.315 [INFO ] [main ] [renxl.club.raft.support.FileApi:] madvise 4648177664 null 0 ret = 0 time consuming = 916
+2020-09-08 21:25:59.236 [INFO ] [main ] [renxl.club.raft.support.FileApi:] mapped file warm-up done, force to disk, mappedFile=null, costTime=0
+2020-09-08 21:25:59.243 [INFO ] [main ] [renxl.club.raft.support.FileApi:] mapped file warm-up done. mappedFile=null, costTime=21
+2020-09-08 21:25:59.418 [INFO ] [main ] [renxl.club.raft.support.FileApi:] mlock 4455006208 null 0 ret = 0 time consuming = 173
+2020-09-08 21:25:59.418 [INFO ] [main ] [renxl.club.raft.support.FileApi:] madvise 4455006208 null 0 ret = 0 time consuming = 174
+2020-09-08 21:27:13.763 [INFO ] [main ] [renxl.club.raft.support.FileApi:] mapped file warm-up done, force to disk, mappedFile=null, costTime=33493
+2020-09-08 21:27:13.767 [INFO ] [main ] [renxl.club.raft.support.FileApi:] mapped file warm-up done. mappedFile=null, costTime=33503
+2020-09-08 21:27:54.768 [INFO ] [main ] [renxl.club.raft.support.FileApi:] j=0, costTime=0
+2020-09-08 21:27:54.770 [INFO ] [main ] [renxl.club.raft.support.FileApi:] mapped file warm-up done, force to disk, mappedFile=null, costTime=7
+2020-09-08 21:27:54.772 [INFO ] [main ] [renxl.club.raft.support.FileApi:] mapped file warm-up done. mappedFile=null, costTime=9
+2020-09-08 21:27:55.471 [INFO ] [main ] [renxl.club.raft.support.FileApi:] mlock 4743979008 null 8192 ret = 0 time consuming = 699
+2020-09-08 21:27:55.472 [INFO ] [main ] [renxl.club.raft.support.FileApi:] madvise 4743979008 null 8192 ret = 0 time consuming = 700
+2020-09-08 21:28:32.481 [INFO ] [main ] [renxl.club.raft.support.FileApi:] j=0, costTime=12517
+2020-09-08 21:28:34.327 [INFO ] [main ] [renxl.club.raft.support.FileApi:] mapped file warm-up done, force to disk, mappedFile=null, costTime=14372
+2020-09-08 21:28:34.330 [INFO ] [main ] [renxl.club.raft.support.FileApi:] mapped file warm-up done. mappedFile=null, costTime=14376
+2020-09-08 21:28:34.979 [INFO ] [main ] [renxl.club.raft.support.FileApi:] mlock 4872871936 null 8192 ret = 0 time consuming = 648
+2020-09-08 21:28:34.980 [INFO ] [main ] [renxl.club.raft.support.FileApi:] madvise 4872871936 null 8192 ret = 0 time consuming = 649
+2020-09-08 21:29:38.803 [INFO ] [main ] [renxl.club.raft.support.FileApi:] j=0, costTime=0
+2020-09-08 21:29:38.806 [INFO ] [main ] [renxl.club.raft.support.FileApi:] mapped file warm-up done, force to disk, mappedFile=null, costTime=9
+2020-09-08 21:29:38.807 [INFO ] [main ] [renxl.club.raft.support.FileApi:] mapped file warm-up done. mappedFile=null, costTime=10
+2020-09-08 21:29:38.951 [INFO ] [main ] [renxl.club.raft.support.FileApi:] mlock 5032800256 null 8192 ret = 0 time consuming = 144
+2020-09-08 21:29:38.952 [INFO ] [main ] [renxl.club.raft.support.FileApi:] madvise 5032800256 null 8192 ret = 0 time consuming = 145
+2020-09-08 21:30:04.853 [INFO ] [main ] [renxl.club.raft.support.FileApi:] j=0, costTime=0
+2020-09-08 21:30:04.856 [INFO ] [main ] [renxl.club.raft.support.FileApi:] mapped file warm-up done, force to disk, mappedFile=null, costTime=7
+2020-09-08 21:30:04.857 [INFO ] [main ] [renxl.club.raft.support.FileApi:] mapped file warm-up done. mappedFile=null, costTime=8
+2020-09-08 21:30:04.968 [INFO ] [main ] [renxl.club.raft.support.FileApi:] mlock 4950388736 null 8192 ret = 0 time consuming = 110
+2020-09-08 21:30:04.968 [INFO ] [main ] [renxl.club.raft.support.FileApi:] madvise 4950388736 null 8192 ret = 0 time consuming = 110
+2020-09-08 21:31:51.407 [INFO ] [main ] [renxl.club.raft.support.FileApi:] j=0, costTime=0
+2020-09-08 21:31:51.409 [INFO ] [main ] [renxl.club.raft.support.FileApi:] j=1000, costTime=0
+2020-09-08 21:31:51.410 [INFO ] [main ] [renxl.club.raft.support.FileApi:] j=2000, costTime=0
+2020-09-08 21:31:51.410 [INFO ] [main ] [renxl.club.raft.support.FileApi:] j=3000, costTime=0
+2020-09-08 21:31:51.410 [INFO ] [main ] [renxl.club.raft.support.FileApi:] j=4000, costTime=0
+2020-09-08 21:31:51.410 [INFO ] [main ] [renxl.club.raft.support.FileApi:] j=5000, costTime=0
+2020-09-08 21:31:51.411 [INFO ] [main ] [renxl.club.raft.support.FileApi:] j=6000, costTime=0
+2020-09-08 21:31:51.411 [INFO ] [main ] [renxl.club.raft.support.FileApi:] j=7000, costTime=0
+2020-09-08 21:31:51.411 [INFO ] [main ] [renxl.club.raft.support.FileApi:] j=8000, costTime=0
+2020-09-08 21:31:51.411 [INFO ] [main ] [renxl.club.raft.support.FileApi:] mapped file warm-up done, force to disk, mappedFile=null, costTime=8
+2020-09-08 21:31:51.414 [INFO ] [main ] [renxl.club.raft.support.FileApi:] mapped file warm-up done. mappedFile=null, costTime=11
+2020-09-08 21:31:51.601 [INFO ] [main ] [renxl.club.raft.support.FileApi:] mlock 4578873344 null 8192 ret = 0 time consuming = 185
+2020-09-08 21:31:51.601 [INFO ] [main ] [renxl.club.raft.support.FileApi:] madvise 4578873344 null 8192 ret = 0 time consuming = 187
+2020-09-08 21:32:43.362 [INFO ] [main ] [renxl.club.raft.support.FileApi:] j=0, costTime=0
+2020-09-08 21:32:43.364 [INFO ] [main ] [renxl.club.raft.support.FileApi:] mapped file warm-up done, force to disk, mappedFile=null, costTime=7
+2020-09-08 21:32:43.366 [INFO ] [main ] [renxl.club.raft.support.FileApi:] mapped file warm-up done. mappedFile=null, costTime=9
+2020-09-08 21:32:43.587 [INFO ] [main ] [renxl.club.raft.support.FileApi:] mlock 4655214592 null 8192 ret = 0 time consuming = 221
+2020-09-08 21:32:43.587 [INFO ] [main ] [renxl.club.raft.support.FileApi:] madvise 4655214592 null 8192 ret = 0 time consuming = 221
+2020-09-08 21:33:01.944 [INFO ] [main ] [renxl.club.raft.support.FileApi:] j=0, costTime=0
+2020-09-08 21:33:01.947 [INFO ] [main ] [renxl.club.raft.support.FileApi:] mapped file warm-up done, force to disk, mappedFile=null, costTime=8
+2020-09-08 21:33:01.948 [INFO ] [main ] [renxl.club.raft.support.FileApi:] mapped file warm-up done. mappedFile=null, costTime=9
+2020-09-08 21:33:02.444 [INFO ] [main ] [renxl.club.raft.support.FileApi:] mlock 4877099008 null 8192 ret = 0 time consuming = 495
+2020-09-08 21:33:02.445 [INFO ] [main ] [renxl.club.raft.support.FileApi:] madvise 4877099008 null 8192 ret = 0 time consuming = 496
+2020-09-08 21:36:06.432 [INFO ] [main ] [renxl.club.raft.support.FileApi:] j=0, costTime=0
+2020-09-08 21:36:06.434 [INFO ] [main ] [renxl.club.raft.support.FileApi:] mapped file warm-up done, force to disk, mappedFile=null, costTime=6
+2020-09-08 21:36:06.436 [INFO ] [main ] [renxl.club.raft.support.FileApi:] mapped file warm-up done. mappedFile=null, costTime=8
+2020-09-08 21:36:06.549 [INFO ] [main ] [renxl.club.raft.support.FileApi:] mlock 4563386368 null 8192 ret = 0 time consuming = 113
+2020-09-08 21:36:06.550 [INFO ] [main ] [renxl.club.raft.support.FileApi:] madvise 4563386368 null 8192 ret = 0 time consuming = 114
