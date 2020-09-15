@@ -14,15 +14,28 @@ import java.util.List;
 @Slf4j
 public class FileSequence extends AbstractSequence {
 
+    //   entryIndexFile 的日志偏移量
+    int logIndexOffset;
+    //  entryIndexFile的 索引下标位置
+    int nextLogIndex;
     private EntryFile entryFile;
-
     private EntryIndexFile entryIndexFile;
 
 
     public FileSequence() {
+        // 会判断是来源于恢复 还是新建
         entryIndexFile = new EntryIndexFile();
+        // 数据文件的偏移位置
+        int loadOffset = entryIndexFile.getLoadOffset();
+
+        entryFile = new EntryFile(loadOffset);
+
         commitIndex = entryIndexFile.getMaxIndex();
-        entryFile = new EntryFile(entryIndexFile.getLoadOffset());
+        // 由 entryIndexFile 和 entryFile 来加载出 logIndexOffset 和nextlogindex
+
+        logIndexOffset = entryIndexFile.getMinIndex();
+        //
+        nextLogIndex = entryIndexFile.getMaxIndex() + 1;
     }
 
 
@@ -55,8 +68,6 @@ public class FileSequence extends AbstractSequence {
 
         for (int index = commitIndexes + 1; index <= commitIndexes; index++) {
             Entry entry = entryBuffer.poll();
-//            int entryIndex = entry.getIndex();
-
             entryFile.writeEntry(entry);
             entryIndexFile.writeEntry(index, (EntryIndex) entry);
             commitIndex = index;
@@ -74,6 +85,8 @@ public class FileSequence extends AbstractSequence {
 
     @Override
     public Entry getEntry(int index) {
+
+
         return null;
     }
 

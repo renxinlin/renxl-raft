@@ -55,13 +55,7 @@ public class AbstractLog implements Log {
         return commitIndex;
     }
 
-    @Override
-    public List<Entry> getAppendEntrys(int nextIndex) {
-        // todo 添加一个变量来控制每次传输的量 目前是全量
 
-
-        return null;
-    }
 
     /**
      *
@@ -90,5 +84,39 @@ public class AbstractLog implements Log {
         return appendEntryRequest;
     }
 
+
+
+    private List<Entry> getAppendEntrys(int nextIndex) {
+        // todo 添加一个变量来控制每次传输的量 目前是全量
+
+
+        return null;
+    }
+
+
+
+    @Override
+    public boolean appendFromLeader(int prevLogTerm, int prevLogIndex, List<Entry> entries) {
+
+        if(isLastEntryMatched(prevLogTerm,prevLogIndex)){
+            return false;
+        }
+
+        return false;
+    }
+
+    private boolean isLastEntryMatched(int prevLogTerm, int prevLogIndex) {
+        Entry entry = entrySequence.getEntry(prevLogIndex);
+
+        // TODO  快照
+        if (entry == null) {
+            return false;
+        }
+
+        if(entry.getTerm() != prevLogTerm){
+            return false;
+        }
+        return true;
+    }
 
 }

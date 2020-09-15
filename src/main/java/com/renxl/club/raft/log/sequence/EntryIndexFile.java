@@ -7,6 +7,8 @@ import java.io.File;
 import java.util.Arrays;
 
 /**
+ * [][][][数据文件偏移量]
+ *
  * @Author renxl
  * @Date 2020-09-09 02:23
  * @Version 1.0.0
@@ -19,7 +21,10 @@ public class EntryIndexFile {
 
 
     private boolean loaded = false;
-
+    /**
+     * 表示当前偏移量 用于entryfile恢复
+     * 应该叫做loadindex
+     */
     private int loadOffset;
 
     /**
@@ -59,8 +64,8 @@ public class EntryIndexFile {
         // 需要从indexfile 恢复 currentOffset
         fileApi = new FileApi(prefix, Integer.parseInt(lastFile));
         loaded = true;
-        int minIndex = fileApi.readInt(0);
-        int maxIndex = fileApi.readInt(4);
+        minIndex = fileApi.readInt(0);
+        maxIndex = fileApi.readInt(4);
         int lastIndexOffset = DEFAULT_META_SIZE + (maxIndex - minIndex) * DEFAULT_INDEX_SIZE;
         loadOffset = fileApi.readInt(lastIndexOffset + 12);
         //  需要从索引文件恢复数据文件currentOffset
@@ -74,7 +79,7 @@ public class EntryIndexFile {
 
         // 文件已经写满
         if ((fileApi.getDataFileSize() - DEFAULT_META_SIZE) == (maxIndex - minIndex + 1) * DEFAULT_INDEX_SIZE) {
-            fileApi = new FileApi(prefix, fileApi.getFileName() + fileSize, fileSize);
+            fileApi = new FileApi(prefix, fileApi.getFileName() + fileSize, fileSize,index);
         }
         // 内存
         if (minIndex == 0) {
@@ -99,6 +104,7 @@ public class EntryIndexFile {
 
     /**
      * 用于恢复entryFile的offset
+     *
      * @return
      */
     public int getLoadOffset() {
@@ -108,5 +114,9 @@ public class EntryIndexFile {
 
     public int getMaxIndex() {
         return maxIndex;
+    }
+
+    public int getMinIndex() {
+        return minIndex;
     }
 }

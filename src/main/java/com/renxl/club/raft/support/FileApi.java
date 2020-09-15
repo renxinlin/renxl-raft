@@ -103,6 +103,29 @@ public class FileApi {
 
     }
 
+    /**
+     *
+     * @param newDir
+     * @param newFile
+     * @param fileSize
+     * @param index
+     */
+    @SneakyThrows
+    public FileApi(String newDir, int newFile, int fileSize, int index) {
+        this.file = new File(newDir+newFile);
+        // TODO 验证dataFileSize
+        this.dataFileSize = (int)file.getTotalSpace();
+        this.fileName = newFile;
+
+        this.randomAccessFile = new RandomAccessFile(file, "rw");
+        this.fileChannel = new RandomAccessFile(file, "rw").getChannel();
+        mappedByteBuffer = fileChannel.map(FileChannel.MapMode.READ_WRITE, 0, dataFileSize);
+        // 文件写满后 新文件的初始index为即将写入的index
+        mappedByteBuffer.putInt(index);
+        mappedByteBuffer.putInt(index);
+
+    }
+
 
     public static void ensureDirOK(final String dirName) {
         if (dirName != null) {

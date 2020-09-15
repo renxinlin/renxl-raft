@@ -12,6 +12,7 @@ import com.renxl.club.raft.core.message.ElectionResponse;
 import com.renxl.club.raft.core.role.*;
 import com.renxl.club.raft.core.scheduled.ElectionTaskFuture;
 import com.renxl.club.raft.core.scheduled.LogReplicationFuture;
+import com.renxl.club.raft.log.entry.Entry;
 import com.renxl.club.raft.log.statemachine.StateMachine;
 import lombok.extern.slf4j.Slf4j;
 
@@ -351,6 +352,7 @@ public class NodeImpl implements Node {
 
     /**
      * follower节点收到消息准备发送消息
+     *
      * @param appendEntryRequest
      */
     @Subscribe
@@ -360,10 +362,11 @@ public class NodeImpl implements Node {
     }
 
     /**
-     *
-     * 需要关注votedFor
+     * 需要关注votedFor todo 在这里我认为follower应当全部遵循leader ；但是原作者这里有些场景遵循null
+     * <p>
      * worker线程处理 follower节点收到消息准备发送消息
      * 本期添加日志部分的处理
+     *
      * @param appendEntryRequest
      */
     private void replyAppendEntryRequest(AppendEntryRequest appendEntryRequest) {
@@ -372,6 +375,11 @@ public class NodeImpl implements Node {
             appendEntryRequest.getChannel().writeAndFlush(new AppendEntryResponse(false, role.getTerm()));
             return;
         }
+
+        if (role instanceof FollowerRole && !appendEntryRequest.getLeaderId().equals(((FollowerRole) role).getVotedFor())) {
+            log.error(" role votedFor [{}] is but leader is [{}]", role, appendEntryRequest);
+        }
+
         // 这里的term是可能跨代的
         if (appendEntryRequest.getTerm() > role.getTerm()) {
             // response role 会在后续发起选举
@@ -381,9 +389,9 @@ public class NodeImpl implements Node {
                     appendEntryRequest.getTerm(),
                     startElectionDelayTask(),
                     appendEntryRequest.getLeaderId(),
-                    null // 正常情况下选举结束votedfor已经确定
+                    appendEntryRequest.getLeaderId() // 正常情况下选举结束votedfor已经确定
             ));
-            appendEntryRequest.getChannel().writeAndFlush(new AppendEntryResponse(appendEntries(appendEntryRequest), appendEntryRequest.getTerm()));
+            appendEntryRequest.getChannel().writeAndFlush(new AppendEntryResponse(appendEntriesAndCommit(appendEntryRequest), appendEntryRequest.getTerm()));
             return;
         }
 
@@ -396,18 +404,12 @@ public class NodeImpl implements Node {
                     appendEntryRequest.getTerm(),
                     startElectionDelayTask(),
                     appendEntryRequest.getLeaderId(),
-                    null
+                    ((FollowerRole) role).getVotedFor()
             ));
-            appendEntryRequest.getChannel().writeAndFlush(new AppendEntryResponse(appendEntries(appendEntryRequest), appendEntryRequest.getTerm()));
+            appendEntryRequest.getChannel().writeAndFlush(new AppendEntryResponse(appendEntriesAndCommit(appendEntryRequest), appendEntryRequest.getTerm()));
             return;
         }
 
-        if (role instanceof LeaderRole) {
-            //  理论上不会出现这一情景
-            log.error("more than two node been leader");
-            appendEntryRequest.getChannel().writeAndFlush(new AppendEntryResponse(false, role.getTerm()));
-            return;
-        }
 
         if (role instanceof CandidateRole) {
             role.cancelLogOrElection();
@@ -415,17 +417,34 @@ public class NodeImpl implements Node {
                     RoleEnum.FOLLOWER,
                     appendEntryRequest.getTerm(),
                     startElectionDelayTask(),
-                    null,
-                    null
+                    appendEntryRequest.getLeaderId(),
+                    appendEntryRequest.getLeaderId() // 我个人认为应当服从leader
             ));
-            appendEntryRequest.getChannel().writeAndFlush(new AppendEntryResponse(appendEntries(appendEntryRequest), appendEntryRequest.getTerm()));
+            appendEntryRequest.getChannel().writeAndFlush(new AppendEntryResponse(appendEntriesAndCommit(appendEntryRequest), appendEntryRequest.getTerm()));
+            return;
+        }
+        if (role instanceof LeaderRole) {
+            //  理论上不会出现这一情景 否则说明集群出现两个leader 在过半机制 以及一票制等约束下 理论上无法出现
+            log.error("more than two node had been leader");
+            appendEntryRequest.getChannel().writeAndFlush(new AppendEntryResponse(false, role.getTerm()));
             return;
         }
 
-
     }
 
-    private Boolean appendEntries(AppendEntryRequest appendEntryRequest) {
+    /**
+     * follower追加到缓冲区后直接commit
+     *
+     * @param appendEntryRequest
+     * @return
+     */
+    private Boolean appendEntriesAndCommit(AppendEntryRequest appendEntryRequest) {
+        int prevLogTerm = appendEntryRequest.getPrevLogTerm();
+        int prevLogIndex = appendEntryRequest.getPrevLogIndex();
+        List<Entry> entries = appendEntryRequest.getEntries();
+
+        nodeContext.getLog().appendFromLeader(prevLogTerm,prevLogIndex,entries);
+
 
         return null;
     }
