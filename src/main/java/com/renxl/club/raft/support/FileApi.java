@@ -63,7 +63,12 @@ public class FileApi {
     private Integer fileName;
 
 
-
+    /**
+     * 正向新建
+     * @param dir
+     * @param filename
+     * @param filesize
+     */
     @SneakyThrows
     public FileApi(String dir,Integer filename ,int filesize) {
         this.dataFileSize = filesize;
@@ -77,9 +82,14 @@ public class FileApi {
         warmMappedFile(FlushDiskType.SYNC_FLUSH,2);
     }
 
+    /**
+     * 反向load
+     * @param existDir
+     * @param existFileName
+     */
     @SneakyThrows
     public FileApi(String existDir, Integer existFileName) {
-        this.file = new File(existFileName.toString());
+        this.file = new File(existDir+existFileName.toString());
         // TODO 验证dataFileSize
         this.dataFileSize = (int)file.getTotalSpace();
         this.fileName = existFileName;
@@ -88,7 +98,7 @@ public class FileApi {
         this.fileChannel = new RandomAccessFile(file, "rw").getChannel();
         mappedByteBuffer = fileChannel.map(FileChannel.MapMode.READ_WRITE, 0, dataFileSize);
         // TODO 验证此时能不能写入假值
-        warmMappedFile(FlushDiskType.SYNC_FLUSH,2);
+//        warmMappedFile(FlushDiskType.SYNC_FLUSH,2);
 
 
     }
@@ -240,11 +250,27 @@ public class FileApi {
 
     }
 
+
+    public void read(byte[] dst, int offset,int length) {
+        mappedByteBuffer.get(dst,offset,length);
+
+    }
+
+    public int readInt(int offset) {
+       return mappedByteBuffer.getInt(offset);
+
+    }
+
+
+
+
     public Integer getFileName() {
         return fileName;
     }
 
-    public void setFileName(Integer fileName) {
-        this.fileName = fileName;
+    public int getDataFileSize() {
+        return dataFileSize;
     }
+
+
 }

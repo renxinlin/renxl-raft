@@ -23,10 +23,10 @@ public class FollowerRole implements Role{
     private int term;
     private  ElectionTaskFuture electionTaskFuture;
 
-    // 当前leader id  有可能为null
+    // 当前leader id 有可能为null
     private NodeId leaderId;
 
-    //  投过票的节点 有可能为null
+    //  投过票的节点 有可能为null 当选举的时候 候选者会决定是否votedFor somebody
     private NodeId votedFor;
 
     public RoleEnum getName() {

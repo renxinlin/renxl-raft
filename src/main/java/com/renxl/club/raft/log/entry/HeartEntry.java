@@ -7,8 +7,8 @@ package com.renxl.club.raft.log.entry;
  */
 public class HeartEntry extends AbstractEntry{
 
-    public HeartEntry(int term, int kind) {
-        super(KIND_NO_HEART, term, kind);
+    public HeartEntry(int term, int index) {
+        super(KIND_NO_HEART, term, index);
     }
 
     @Override

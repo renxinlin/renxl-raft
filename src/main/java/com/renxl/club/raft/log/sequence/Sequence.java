@@ -13,7 +13,6 @@ public interface Sequence {
 
 
 
-    int getFirstLogIndex();
 
     void append(Entry entry);
 
@@ -23,4 +22,8 @@ public interface Sequence {
 
     int getCommitIndex();
 
+
+    int getNextLogIndex();
+
+    Entry getEntry(int i);
 }

@@ -7,7 +7,7 @@ public class CommandEntry extends AbstractEntry {
     // 操作的命令对应的二进制数据
     private final byte[] commandBytes;
 
-    public CommandEntry(int index, int term, byte[] commandBytes) {
+    public CommandEntry( int term, int index,byte[] commandBytes) {
         super(KIND_COMMAND, index, term);
         this.commandBytes = commandBytes;
     }

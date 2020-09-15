@@ -2,8 +2,7 @@ package com.renxl.club.raft.log.sequence;
 
 import com.renxl.club.raft.log.entry.Entry;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.LinkedList;
 
 /**
  * @Author renxl
@@ -11,14 +10,23 @@ import java.util.List;
  * @Version 1.0.0
  */
 public abstract class AbstractSequence implements Sequence {
+    /**
+     * 偏移量
+     */
+    protected Integer logIndexOffset;
 
-    private Integer commitIndex;
+    /**
+     *   commitIndex + pendEntries =  commitIndex
+     */
+    protected Integer nextLogIndex;
 
-    private List<Entry> entryBuffer = new ArrayList<>();
+    protected Integer commitIndex;
+
+    protected LinkedList<Entry> entryBuffer = new LinkedList();
+
     @Override
-    public int getCommitIndex(){
+    public int getCommitIndex() {
         return commitIndex;
     }
-
 
 }

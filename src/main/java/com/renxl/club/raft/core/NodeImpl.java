@@ -4,6 +4,7 @@ import com.google.common.eventbus.Subscribe;
 import com.renxl.club.raft.core.member.Endpoint;
 import com.renxl.club.raft.core.member.Member;
 import com.renxl.club.raft.core.member.NodeId;
+import com.renxl.club.raft.core.member.ReplicatingState;
 import com.renxl.club.raft.core.message.AppendEntryRequest;
 import com.renxl.club.raft.core.message.AppendEntryResponse;
 import com.renxl.club.raft.core.message.ElectionRequest;
@@ -17,6 +18,7 @@ import lombok.extern.slf4j.Slf4j;
 import javax.annotation.Nonnull;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -213,7 +215,6 @@ public class NodeImpl implements Node {
 
 
     /**
-     * 这里非常复杂:
      * <p>
      * 维度分析
      * 第一:  可能有1-n个候选者参加了选举
@@ -241,7 +242,7 @@ public class NodeImpl implements Node {
      */
     private void processResponse(ElectionResponse response) {
         // 6 7 9 10
-        log.info("current term is [{}] and response term is [{}]",role.getTerm(),response.getTerm());
+        log.info("current term is [{}] and response term is [{}]", role.getTerm(), response.getTerm());
         if (response.getTerm() > role.getTerm()) {
             // response role 会在后续发起选举
             role.cancelLogOrElection();
@@ -255,12 +256,10 @@ public class NodeImpl implements Node {
         }
 
         if (!(role instanceof CandidateRole)) {
-            //  [8] 9 7 7
             return;
 
         }
         if (!response.getAgreeElection()) {
-            // [ 5] 44  8 候选是5 8不同意 依旧可以成为leader
             return;
 
         }
@@ -280,6 +279,12 @@ public class NodeImpl implements Node {
                     response.getTerm()
             ));
 
+
+            log.info("become leader and term is [{}] and index is [{}]", response.getTerm());
+            // 所有从节点必须遵循新leader的日志体系
+            initNextIndexOfReplicatingStates();
+            // 为了防止[幽灵复现] 要求commitindex的提交必须term相等,而新leader的term要追到日志里去[追加不是提交] term一增加，原来可能幽灵复制的日志由于term降低则会被leader日志覆盖
+            nodeContext.getLog().appendNoop(response.getTerm()); // no-op log
         } else {
             role.cancelLogOrElection();
             becomeCandidate(new CandidateRole(startElectionDelayTask(), RoleEnum.CANDIDATE, role.getTerm(), votesCount));
@@ -289,6 +294,17 @@ public class NodeImpl implements Node {
         // check role
 
 
+    }
+
+    /**
+     * 成为leader设置follower的 next index
+     */
+    private void initNextIndexOfReplicatingStates() {
+        Map<NodeId, Member> members = nodeContext.getMemberGroup().getMembers();
+        for (Member member : members.values()) {
+            member.setReplicatingState(new ReplicatingState(0,
+                    nodeContext.getLog().getNextIndex(), false));
+        }
     }
 
     private void becomeLeader(LeaderRole leaderRole) {
@@ -311,32 +327,52 @@ public class NodeImpl implements Node {
     }
 
     private void doLogTask() {
-        log.info("START log task and current leader is [{}]",role);
+        log.info("START log task and current leader is [{}]", role);
         Collection<Member> members = nodeContext.getMemberGroup().getMembers().values();
         List<Endpoint> endpoints = members.stream().map(Member::getEndpoint).collect(Collectors.toList());
         endpoints = endpoints.stream().filter(endpoint -> !endpoint.getNodeId().equals(nodeContext.getMemberGroup().getSelf())).collect(Collectors.toList());
-        this.nodeContext.getConnector().sendAppendEntryRequest(new AppendEntryRequest(this.role.getTerm(), null), endpoints);
+
+
+        for (Member member : members) {
+            if (member.getEndpoint().getNodeId().equals(nodeContext.getSelfId())) {
+                continue;
+            }
+            this.nodeContext.getConnector().sendAppendEntryRequest(
+                    nodeContext.getLog().createAppendEntries(
+                            this.role.getTerm(),
+                            this.nodeContext.getSelfId(),
+                            member.getReplicatingState().getNextIndex()
+                    ), member.getEndpoint()
+            );
+        }
 
     }
 
 
+    /**
+     * follower节点收到消息准备发送消息
+     * @param appendEntryRequest
+     */
     @Subscribe
     public void receiveAppendEntryRequest(AppendEntryRequest appendEntryRequest) {
-
         this.nodeContext.getNodeWorker().execute(() -> replyAppendEntryRequest(appendEntryRequest));
 
     }
 
+    /**
+     *
+     * 需要关注votedFor
+     * worker线程处理 follower节点收到消息准备发送消息
+     * 本期添加日志部分的处理
+     * @param appendEntryRequest
+     */
     private void replyAppendEntryRequest(AppendEntryRequest appendEntryRequest) {
-        // todo 日志
-
-
+        // 这种情况正常不会出现
         if (appendEntryRequest.getTerm() < role.getTerm()) {
             appendEntryRequest.getChannel().writeAndFlush(new AppendEntryResponse(false, role.getTerm()));
             return;
         }
-
-
+        // 这里的term是可能跨代的
         if (appendEntryRequest.getTerm() > role.getTerm()) {
             // response role 会在后续发起选举
             role.cancelLogOrElection();
@@ -344,15 +380,14 @@ public class NodeImpl implements Node {
                     RoleEnum.FOLLOWER,
                     appendEntryRequest.getTerm(),
                     startElectionDelayTask(),
-                    null,
-                    null
+                    appendEntryRequest.getLeaderId(),
+                    null // 正常情况下选举结束votedfor已经确定
             ));
-            appendEntryRequest.getChannel().writeAndFlush(new AppendEntryResponse(true, appendEntryRequest.getTerm()));
-
+            appendEntryRequest.getChannel().writeAndFlush(new AppendEntryResponse(appendEntries(appendEntryRequest), appendEntryRequest.getTerm()));
             return;
         }
 
-
+        // 当term相等的时候
         if (role instanceof FollowerRole) {
             // response role 会在后续发起选举
             role.cancelLogOrElection();
@@ -360,23 +395,19 @@ public class NodeImpl implements Node {
                     RoleEnum.FOLLOWER,
                     appendEntryRequest.getTerm(),
                     startElectionDelayTask(),
-                    null,
+                    appendEntryRequest.getLeaderId(),
                     null
             ));
-            appendEntryRequest.getChannel().writeAndFlush(new AppendEntryResponse(true, appendEntryRequest.getTerm()));
-
+            appendEntryRequest.getChannel().writeAndFlush(new AppendEntryResponse(appendEntries(appendEntryRequest), appendEntryRequest.getTerm()));
             return;
         }
-
 
         if (role instanceof LeaderRole) {
             //  理论上不会出现这一情景
             log.error("more than two node been leader");
             appendEntryRequest.getChannel().writeAndFlush(new AppendEntryResponse(false, role.getTerm()));
-
             return;
         }
-
 
         if (role instanceof CandidateRole) {
             role.cancelLogOrElection();
@@ -387,11 +418,16 @@ public class NodeImpl implements Node {
                     null,
                     null
             ));
-            appendEntryRequest.getChannel().writeAndFlush(new AppendEntryResponse(true, appendEntryRequest.getTerm()));
+            appendEntryRequest.getChannel().writeAndFlush(new AppendEntryResponse(appendEntries(appendEntryRequest), appendEntryRequest.getTerm()));
             return;
         }
 
 
+    }
+
+    private Boolean appendEntries(AppendEntryRequest appendEntryRequest) {
+
+        return null;
     }
 
     @Subscribe
@@ -403,7 +439,7 @@ public class NodeImpl implements Node {
 
     private void doAppendEntryResponse(AppendEntryResponse response) {
 
-        if(role.getTerm()<response.getTerm()){
+        if (role.getTerm() < response.getTerm()) {
             role.cancelLogOrElection();
             becomeFollower(new FollowerRole(
                     RoleEnum.FOLLOWER,
@@ -414,7 +450,7 @@ public class NodeImpl implements Node {
             ));
         }
 
-        if (!(role instanceof  LeaderRole) ){
+        if (!(role instanceof LeaderRole)) {
             log.warn(" not a leader now");
             return;
         }

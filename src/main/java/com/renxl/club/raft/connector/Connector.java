@@ -22,6 +22,6 @@ public interface Connector {
 
     void sendElectionRequest(ElectionRequest electionRequest, List<Endpoint> endpoints);
 
-    void sendAppendEntryRequest(AppendEntryRequest appendEntryRequest, List<Endpoint> endpoints);
+    void sendAppendEntryRequest(AppendEntryRequest appendEntryRequest,Endpoint endpoint);
 
 }

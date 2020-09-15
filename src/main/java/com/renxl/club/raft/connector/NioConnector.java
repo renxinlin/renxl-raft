@@ -208,20 +208,19 @@ public class NioConnector implements Connector {
     }
 
     @Override
-    public void sendAppendEntryRequest(AppendEntryRequest appendEntryRequest, List<Endpoint> endpoints) {
-        for (Endpoint endpoint : endpoints) {
-            Channel channel = outchannels.getChannel(endpoint);
-            if (channel == null) {
-                log.info("get channel error");
-                return;
-            }
-            ChannelFuture channelFuture = channel.writeAndFlush(appendEntryRequest);
-            channelFuture.addListener(listener -> {
-                if (!listener.isSuccess()) {
-                    log.info(" sendAppendEntryRequest error");
-                }
-            });
+    public void sendAppendEntryRequest(AppendEntryRequest appendEntryRequest,Endpoint endpoint) {
+        Channel channel = outchannels.getChannel(endpoint);
+        if (channel == null) {
+            log.error("get channel error");
+            return;
         }
+        ChannelFuture channelFuture = channel.writeAndFlush(appendEntryRequest);
+        channelFuture.addListener(listener -> {
+            if (!listener.isSuccess()) {
+                log.error(" sendAppendEntryRequest error");
+            }
+        });
+
     }
 
 
