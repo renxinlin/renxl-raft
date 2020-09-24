@@ -119,11 +119,52 @@ public class AbstractLog implements Log {
         return false;
     }
 
+    @Override
+    public void commitIndex(int newCommitIndex, int newTerm) {
+        // 验证是不是
+
+
+        if (!validateNewCommitIndex(newCommitIndex, newTerm)) {
+            // 正常来说 不可能走到这个逻辑 走到则说明存在问题 因为append成功 意味着前置的index term校验都过了
+            log.warn("want to advance commitindex and validate newCommitIndex error ");
+            return;
+        }
+        log.info("advance commit index from {} to {}", commitIndex, newCommitIndex);
+        // todo 快照
+        entrySequence.commit(newCommitIndex);
+        commitIndex = newCommitIndex;
+        // todo 推进commitindex的时候需要处理k-v服务
+    }
+
+    private boolean validateNewCommitIndex(int newCommitIndex, int newTerm) {
+
+//        if (newCommitIndex <= commitIndex) {
+//            return false;
+//        }
+        Entry entry = entrySequence.getEntry(newCommitIndex);
+        if (entry == null) {
+            return false;
+        }
+        if (entry.getTerm() != newTerm) {
+            return false;
+        }
+        return true;
+    }
+
     /**
      * 真正需要追加到缓冲区的日志
-     * @param newEntries
+     *
+     * @param entries
      */
-    private void appendEntriesFromLeader(List<Entry> newEntries) {
+    private void appendEntriesFromLeader(List<Entry> entries) {
+        if (entries.isEmpty()) {
+            return;
+        }
+
+        // 添加到日志条目缓冲区 ，leader节点需要过半提交 follower节点直接提交
+        // follower节点直接提交也就造成了 append之前的存在回退的原因 ，可能瞬间leader挂掉 这个条目还没有过半提交 将来新的leader就会对这些双分叉或者单分叉的信息进行回退
+        log.info("append entry to  entry buffer  by leader [{}]", entries);
+        entrySequence.append(entries);
 
     }
 
@@ -158,16 +199,16 @@ public class AbstractLog implements Log {
              */
             Entry followerEntryMeta = entrySequence.getEntry(logIndex);
             if (followerEntryMeta == null || followerEntryMeta.getTerm() != entry.getTerm()) {
-                lastMacthedIndex = logIndex -1;
+                lastMacthedIndex = logIndex - 1;
             }
         }
         if (lastMacthedIndex == -1) {
-            lastMacthedIndex = entries.get(entries.size() - 1).getIndex() ;
+            lastMacthedIndex = entries.get(entries.size() - 1).getIndex();
         }
 
 
         // 移除 unmatchedIndexStart之后的日志条目 , unmatchedIndexStart本身还是匹配leader的
-        removeEntriesAfter(lastMacthedIndex );
+        removeEntriesAfter(lastMacthedIndex);
         // 从不匹配的节点到结尾需要追加日志
 
         //leader   follower
@@ -175,19 +216,15 @@ public class AbstractLog implements Log {
         //0 1 2     0 1
         // 将index=8的数据添加上去 | lastMacthedIndex = 7 |  7+1-6 = 2 | 从 下标为2 到结束的数据 append
         // attention: 只需要append follower没有的数据 否则会造成缓冲区重复导致日志序列不正常
-        return entries.subList(lastMacthedIndex + 1 - entries.get(0).getIndex(),entries.size());
-
-
-
-
+        return entries.subList(lastMacthedIndex + 1 - entries.get(0).getIndex(), entries.size());
 
 
     }
 
     /**
-     *
      * 如果没有快照和k-v数据 我们直接进行覆盖就行  根本没必要判断
      * 但由于状态数据必须要回滚  所以这里需要remove add  而不是直接覆盖
+     *
      * @param lastMatchedIndex
      */
     private void removeEntriesAfter(int lastMatchedIndex) {
@@ -216,9 +253,6 @@ public class AbstractLog implements Log {
         }
         return true;
     }
-
-
-
 
 
 }

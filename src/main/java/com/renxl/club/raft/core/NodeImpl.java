@@ -439,10 +439,12 @@ public class NodeImpl implements Node {
         int prevLogIndex = appendEntryRequest.getPrevLogIndex();
         List<Entry> entries = appendEntryRequest.getEntries();
 
-        nodeContext.getLog().appendFromLeader(prevLogTerm,prevLogIndex,entries);
-
-
-        return null;
+        boolean appendSuccess = nodeContext.getLog().appendFromLeader(prevLogTerm, prevLogIndex, entries);
+        // follower节点追加到缓冲区成功则直接commit
+        if(appendSuccess){
+            nodeContext.getLog().commitIndex(Math.min(appendEntryRequest.getLeaderCommit(), appendEntryRequest.getLastEntryIndex()), appendEntryRequest.getTerm());
+        }
+        return appendSuccess;
     }
 
     @Subscribe

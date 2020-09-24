@@ -62,6 +62,14 @@ public class FileSequence extends AbstractSequence {
         });
     }
 
+    /**
+     * commit的实质就是将缓冲区的内容持久化
+     *
+     *
+     * 技术手段上
+     * 从堆内存到达mmap的系统内存映射区域 在由操作系统进行刷盘
+     * @param commitIndexes
+     */
     @Override
     public void commit(int commitIndexes) {
         if (commitIndexes <= commitIndex) {

@@ -52,4 +52,12 @@ public interface Log {
      * @return
      */
     boolean appendFromLeader(int prevLogTerm, int prevLogIndex, List<Entry> entries);
+
+    /**
+     * follower节点提交日志
+     * @param commitIndex
+     * @param term
+     */
+    void commitIndex(int commitIndex, int term);
+
 }

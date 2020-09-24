@@ -44,4 +44,8 @@ public class AppendEntryRequest extends RpcMessage {
 
     private Channel channel;
 
+
+    public int getLastEntryIndex() {
+        return this.entries.isEmpty() ? this.prevLogIndex : this.entries.get(this.entries.size() - 1).getIndex();
+    }
 }
