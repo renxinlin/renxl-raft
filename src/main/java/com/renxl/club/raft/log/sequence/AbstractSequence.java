@@ -29,4 +29,4 @@ public abstract class AbstractSequence implements Sequence {
         return commitIndex;
     }
 
-}
+ }

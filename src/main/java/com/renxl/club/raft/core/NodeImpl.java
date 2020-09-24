@@ -330,10 +330,6 @@ public class NodeImpl implements Node {
     private void doLogTask() {
         log.info("START log task and current leader is [{}]", role);
         Collection<Member> members = nodeContext.getMemberGroup().getMembers().values();
-        List<Endpoint> endpoints = members.stream().map(Member::getEndpoint).collect(Collectors.toList());
-        endpoints = endpoints.stream().filter(endpoint -> !endpoint.getNodeId().equals(nodeContext.getMemberGroup().getSelf())).collect(Collectors.toList());
-
-
         for (Member member : members) {
             if (member.getEndpoint().getNodeId().equals(nodeContext.getSelfId())) {
                 continue;

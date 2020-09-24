@@ -17,7 +17,6 @@ public interface Entry {
 
     int getTerm();
 
-    EntryMeta getMeta();
 
 
     /**

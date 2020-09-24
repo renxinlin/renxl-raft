@@ -10,7 +10,7 @@ import lombok.NoArgsConstructor;
 @Getter
 @AllArgsConstructor
 @NoArgsConstructor
-public class EntryMeta {
+public class EntryMeta  implements Entry{
 
     private int kind;
     private int index;
@@ -18,16 +18,25 @@ public class EntryMeta {
 
 
 
+    @Override
     public int getKind() {
         return kind;
     }
 
+    @Override
     public int getIndex() {
         return index;
     }
 
+    @Override
     public int getTerm() {
         return term;
+    }
+
+
+    @Override
+    public byte[] getCommandBytes() {
+        return new byte[0];
     }
 
 }

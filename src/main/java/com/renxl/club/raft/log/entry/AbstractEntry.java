@@ -16,9 +16,5 @@ abstract class AbstractEntry implements Entry {
 
 
 
-    @Override
-    public EntryMeta getMeta() {
-        return new EntryMeta(kind, index, term);
-    }
 
 }

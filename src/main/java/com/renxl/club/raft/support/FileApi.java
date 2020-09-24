@@ -2,6 +2,7 @@ package com.renxl.club.raft.support;
 
 import com.sun.jna.NativeLong;
 import com.sun.jna.Pointer;
+import com.sun.tools.javac.util.Assert;
 import lombok.SneakyThrows;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,7 +19,6 @@ import java.security.PrivilegedAction;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
- *
  * 指定一个索引文件为100M
  * 指定一个索引数据文件为500M
  * 一个快照为500M
@@ -33,15 +33,8 @@ public class FileApi {
      * 4KB pagecache 的大小
      */
     private static final int OS_PAGE_SIZE = 4096;
-
-    // 索引文件大小   50M
-    //  数据文件的大小 1G
-    private int dataFileSize = 1024*1024*50;
-
-
-    private final File file;
-
     protected final AtomicInteger wrotePosition = new AtomicInteger(0);
+    private final File file;
     //
     //
     //
@@ -60,38 +53,43 @@ public class FileApi {
     //
     private final MappedByteBuffer mappedByteBuffer;
     Logger log = LoggerFactory.getLogger(FileApi.class);
+    // 索引文件大小   50M
+    //  数据文件的大小 1G
+    private int dataFileSize = 1024 * 1024 * 50;
     private Integer fileName;
 
 
     /**
      * 正向新建
+     *
      * @param dir
      * @param filename
      * @param filesize
      */
     @SneakyThrows
-    public FileApi(String dir,Integer filename ,int filesize) {
+    public FileApi(String dir, Integer filename, int filesize) {
         this.dataFileSize = filesize;
         this.fileName = fileName;
-        this.file = new File(dir+filename);
+        this.file = new File(dir + filename);
         ensureDirOK(this.file.getParent());
         this.randomAccessFile = new RandomAccessFile(file, "rw");
         this.fileChannel = new RandomAccessFile(file, "rw").getChannel();
         mappedByteBuffer = fileChannel.map(FileChannel.MapMode.READ_WRITE, 0, dataFileSize);
         // 每1M空间刷盘一次
-        warmMappedFile(FlushDiskType.SYNC_FLUSH,2);
+        warmMappedFile(FlushDiskType.SYNC_FLUSH, 2);
     }
 
     /**
      * 反向load
+     *
      * @param existDir
      * @param existFileName
      */
     @SneakyThrows
     public FileApi(String existDir, Integer existFileName) {
-        this.file = new File(existDir+existFileName.toString());
+        this.file = new File(existDir + existFileName.toString());
         // TODO 验证dataFileSize
-        this.dataFileSize = (int)file.getTotalSpace();
+        this.dataFileSize = (int) file.getTotalSpace();
         this.fileName = existFileName;
 
         this.randomAccessFile = new RandomAccessFile(file, "rw");
@@ -104,7 +102,6 @@ public class FileApi {
     }
 
     /**
-     *
      * @param newDir
      * @param newFile
      * @param fileSize
@@ -112,9 +109,9 @@ public class FileApi {
      */
     @SneakyThrows
     public FileApi(String newDir, int newFile, int fileSize, int index) {
-        this.file = new File(newDir+newFile);
+        this.file = new File(newDir + newFile);
         // TODO 验证dataFileSize
-        this.dataFileSize = (int)file.getTotalSpace();
+        this.dataFileSize = (int) file.getTotalSpace();
         this.fileName = newFile;
 
         this.randomAccessFile = new RandomAccessFile(file, "rw");
@@ -132,6 +129,7 @@ public class FileApi {
             File f = new File(dirName);
             if (!f.exists()) {
                 boolean result = f.mkdirs();
+                Assert.check(result, "mkdir error :[" + dirName + "]");
             }
         }
     }
@@ -193,6 +191,7 @@ public class FileApi {
 
     /**
      * 隔几个pagecache 进行物理内存到虚拟内存的映射建立
+     *
      * @param type
      * @param pages
      */
@@ -263,28 +262,25 @@ public class FileApi {
     }
 
 
-
-    public void write(int offset,byte[] commandBytes) {
-        mappedByteBuffer.put(commandBytes,offset,commandBytes.length);
+    public void write(int offset, byte[] commandBytes) {
+        mappedByteBuffer.put(commandBytes, offset, commandBytes.length);
     }
 
-    public void writeInt(int offset,int data) {
-        mappedByteBuffer.putInt(offset,data);
+    public void writeInt(int offset, int data) {
+        mappedByteBuffer.putInt(offset, data);
 
     }
 
 
-    public void read(byte[] dst, int offset,int length) {
-        mappedByteBuffer.get(dst,offset,length);
+    public void read(byte[] dst, int offset, int length) {
+        mappedByteBuffer.get(dst, offset, length);
 
     }
 
     public int readInt(int offset) {
-       return mappedByteBuffer.getInt(offset);
+        return mappedByteBuffer.getInt(offset);
 
     }
-
-
 
 
     public Integer getFileName() {

@@ -12,9 +12,11 @@ import java.util.List;
 public interface Sequence {
 
 
-
-
-    void append(Entry entry);
+    /**
+     * appendNoop
+     * @param entry
+     */
+    void appendNoop(Entry entry);
 
     void append(List<Entry> entries);
 
@@ -25,5 +27,12 @@ public interface Sequence {
 
     int getNextLogIndex();
 
-    Entry getEntry(int i);
+    Entry getEntry(int index);
+
+    boolean isEmpty();
+
+    int getLastLogIndex();
+
+    void removeAfter(int lastMatchedIndex);
+
 }

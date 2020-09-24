@@ -40,7 +40,7 @@ public class AbstractLog implements Log {
         int nextIndex = entrySequence.getNextLogIndex();
 
         Entry entry = EntryBuilder.create(KIND_NO_HEART, nextIndex, term, new byte[0]);
-        entrySequence.append(entry);
+        entrySequence.appendNoop(entry);
 
 
     }
@@ -56,11 +56,9 @@ public class AbstractLog implements Log {
     }
 
 
-
     /**
-     *
-     * @param term leader 当前term
-     * @param leaderId leader信息
+     * @param term      leader 当前term
+     * @param leaderId  leader信息
      * @param nextIndex leader存储的follower nextindex   第一次选举时 leader初始化其为自身的nextindex
      * @return
      */
@@ -85,38 +83,142 @@ public class AbstractLog implements Log {
     }
 
 
-
     private List<Entry> getAppendEntrys(int nextIndex) {
         // todo 添加一个变量来控制每次传输的量 目前是全量
 
+
+        // TODO 只能获取到快照之前的
 
         return null;
     }
 
 
-
+    /**
+     * @param prevLogTerm
+     * @param prevLogIndex 来自leader节点存储的nextindex-1   prevLogIndex == entries.get(0).getIndex() - 1
+     * @param entries      来自leader的需要提交的日志条目
+     * @return
+     */
     @Override
     public boolean appendFromLeader(int prevLogTerm, int prevLogIndex, List<Entry> entries) {
-
-        if(isLastEntryMatched(prevLogTerm,prevLogIndex)){
+        // leader   [1y] [1y] [2x] [2] [3] leader 决定是否创建快照
+        // follower [1y] [1y] [x]
+        if (!isLastEntryMatched(prevLogTerm, prevLogIndex)) {
             return false;
         }
+        // 心跳 等
+        if (entries.isEmpty()) {
+            // 说明只是leader心跳功能 取消follower的选举期望
+            return true;
+        }
 
+        // 如果是有k-v命令或者新的选举 需要持久化日志
+        //   开始服从leader节点日志 判断是否需要回退
+        List<Entry> newEntries = removeUnmatchedLog(entries);
+        appendEntriesFromLeader(newEntries);
         return false;
+    }
+
+    /**
+     * 真正需要追加到缓冲区的日志
+     * @param newEntries
+     */
+    private void appendEntriesFromLeader(List<Entry> newEntries) {
+
+    }
+
+    private List<Entry> removeUnmatchedLog(List<Entry> entries) {
+        /**
+         *
+         * 根据raft算法 可以知道 follower节点的日志是无条件服从于leader日志 但由于分布式服务的不稳定性 follower节点的日志可能与新的leader日志
+         * 从在日志双分叉或者单分叉现象  此时则丢弃分叉点到结尾的follower日志 重新装上leader的日志
+         *
+         *
+         *
+         *
+         */
+
+
+        // 先查 后删
+        int lastMacthedIndex = -1;
+        for (Entry entry : entries) {
+            int logIndex = entry.getIndex();
+            /**
+             * term机制的存在即防止了幽灵复制，这里也防止了不同节点term之差大于2【也就是跨代现象】
+             * 数字代表term  数字的下标代表index
+             *  leader   1 2 3 3 3 4
+             *
+             *  follower 1 2 2            这种情况check的时候就通不过 则从prevLogIndex = 4的位置不断回退 回退到index=2 index=1 term =2 匹配上了，但是 index=2,term =2 不匹配leader 需要被leader替代
+             *
+             *  此时
+             *
+             *  prevLogTerm = 3
+             *  prevLogIndex = 4
+             *
+             */
+            Entry followerEntryMeta = entrySequence.getEntry(logIndex);
+            if (followerEntryMeta == null || followerEntryMeta.getTerm() != entry.getTerm()) {
+                lastMacthedIndex = logIndex -1;
+            }
+        }
+        if (lastMacthedIndex == -1) {
+            lastMacthedIndex = entries.get(entries.size() - 1).getIndex() ;
+        }
+
+
+        // 移除 unmatchedIndexStart之后的日志条目 , unmatchedIndexStart本身还是匹配leader的
+        removeEntriesAfter(lastMacthedIndex );
+        // 从不匹配的节点到结尾需要追加日志
+
+        //leader   follower
+        //6 7 8     6 7
+        //0 1 2     0 1
+        // 将index=8的数据添加上去 | lastMacthedIndex = 7 |  7+1-6 = 2 | 从 下标为2 到结束的数据 append
+        // attention: 只需要append follower没有的数据 否则会造成缓冲区重复导致日志序列不正常
+        return entries.subList(lastMacthedIndex + 1 - entries.get(0).getIndex(),entries.size());
+
+
+
+
+
+
+    }
+
+    /**
+     *
+     * 如果没有快照和k-v数据 我们直接进行覆盖就行  根本没必要判断
+     * 但由于状态数据必须要回滚  所以这里需要remove add  而不是直接覆盖
+     * @param lastMatchedIndex
+     */
+    private void removeEntriesAfter(int lastMatchedIndex) {
+        if (entrySequence.isEmpty() || lastMatchedIndex >= entrySequence.getLastLogIndex()) {
+            return;
+        }
+
+        // 快照处理
+        entrySequence.removeAfter(lastMatchedIndex);
+        if (lastMatchedIndex < commitIndex) {
+            commitIndex = lastMatchedIndex;
+        }
+
+
     }
 
     private boolean isLastEntryMatched(int prevLogTerm, int prevLogIndex) {
         Entry entry = entrySequence.getEntry(prevLogIndex);
-
         // TODO  快照
         if (entry == null) {
             return false;
         }
 
-        if(entry.getTerm() != prevLogTerm){
+        if (entry.getTerm() != prevLogTerm) {
             return false;
         }
         return true;
     }
+
+
+
+
 
 }

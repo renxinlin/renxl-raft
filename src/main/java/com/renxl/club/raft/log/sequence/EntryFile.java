@@ -1,6 +1,7 @@
 package com.renxl.club.raft.log.sequence;
 
 import com.renxl.club.raft.log.entry.Entry;
+import com.renxl.club.raft.log.entry.EntryMeta;
 import com.renxl.club.raft.support.FileApi;
 
 import java.io.File;
@@ -18,11 +19,11 @@ import java.util.Arrays;
 public class EntryFile {
 
 
-
-
     private FileApi fileApi;
 
-
+    /**
+     * 当前数据文件写到的索引位置
+     */
     private int nextOffset;
 
     private String prefix = "./data/log";
@@ -54,11 +55,14 @@ public class EntryFile {
         return fileApi;
     }
 
-    public void writeEntry(Entry entry) {
+    public boolean writeEntry(Entry entry) {
+        boolean changed = false;
         byte[] commandBytes = entry.getCommandBytes();
         if (nextOffset + 16 + commandBytes.length > fileSize) {
             fileApi = new FileApi(prefix, fileApi.getFileName() + fileSize, fileSize);
             nextOffset = 0;
+            changed = true;
+
         }
         int index = entry.getIndex();
         int kind = entry.getKind();
@@ -72,6 +76,26 @@ public class EntryFile {
         fileApi.write(nextOffset + 16, commandBytes);
         nextOffset += 16;
         nextOffset += commandBytes.length;
+        return changed;
 
+    }
+
+    public Entry getEntry(int dataFileOffset) {
+        int kind = fileApi.readInt(dataFileOffset);
+        int index = fileApi.readInt(dataFileOffset + 4);
+        int term = fileApi.readInt(dataFileOffset + 8);
+        EntryMeta entryMeta = new EntryMeta(kind, index, term);
+        return entryMeta;
+    }
+
+
+    public void truncate(int offsetByIndex) {
+        // 只需要移动指针 缓冲区内的内容不管 将来会被覆盖
+        nextOffset = offsetByIndex;
+
+    }
+
+    public void clear() {
+        nextOffset = 0;
     }
 }
