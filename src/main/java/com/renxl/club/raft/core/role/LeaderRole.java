@@ -2,6 +2,7 @@ package com.renxl.club.raft.core.role;
 
 import com.renxl.club.raft.core.scheduled.LogReplicationFuture;
 import lombok.EqualsAndHashCode;
+import lombok.ToString;
 import lombok.experimental.Accessors;
 
 /**
@@ -12,6 +13,7 @@ import lombok.experimental.Accessors;
 
 @EqualsAndHashCode
 @Accessors(chain = true)
+@ToString
 public class LeaderRole implements Role{
 
 

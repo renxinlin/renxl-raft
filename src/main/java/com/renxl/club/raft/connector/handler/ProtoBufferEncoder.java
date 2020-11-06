@@ -37,21 +37,24 @@ public class ProtoBufferEncoder extends MessageToByteEncoder<RpcMessage> {
     protected void encode(ChannelHandlerContext ctx, RpcMessage msg, ByteBuf out) throws Exception {
         byte[] serialize = ProtoStuffUtil.serialize(msg);
         if(msg instanceof ElectionRequest){
+            log.info("发送消息[候选者节点][选举请求] .... [{}]",msg);
             out.writeByte(ELECTION_REQUEST);
         }
         if(msg instanceof ElectionResponse){
+            log.info("发送消息[从节点][选举响应] .... [{}]",msg);
             out.writeByte(ELECTION_RESPONSE);
         }
         if(msg instanceof AppendEntryResponse){
+            log.info("发送消息[从节点][复制日志响应] .... [{}]",msg);
             out.writeByte(APPEND_ENTRY_RESPONSE);
         }
         if(msg instanceof AppendEntryRequest){
+            log.info("发送消息[主节点][复制日志请求] .... [{}]",msg);
             out.writeByte(APPEND_ENTRY_REQUEST);
         }
 
         out.writeInt(serialize.length);
         out.writeBytes(serialize);
-        // TODO 期望 替换掉默认的write   尤其是日志复制的时候 更不能有延迟 否则会导致集群稳定性受到影响 但是refcnt出现问题 跟进给refcnt ++
         log.info("receive out bound [{}] msg....,[{}]",msg.getType(), msg);
 //        ctx.writeAndFlush(out);
     }

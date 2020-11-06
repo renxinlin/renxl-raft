@@ -1,5 +1,6 @@
 package com.renxl.club.raft.log.sequence;
 
+import com.renxl.club.raft.core.member.NodeId;
 import com.renxl.club.raft.log.entry.Entry;
 import com.renxl.club.raft.log.entry.EntryIndex;
 import lombok.extern.slf4j.Slf4j;
@@ -28,13 +29,13 @@ public class FileSequence extends AbstractSequence {
     private EntryIndexFile entryIndexFile;
 
 
-    public FileSequence() {
+    public FileSequence(NodeId nodeId) {
         // 会判断是来源于恢复 还是新建
-        entryIndexFile = new EntryIndexFile();
+        entryIndexFile = new EntryIndexFile(nodeId);
         // 数据文件的偏移位置
         int loadOffset = entryIndexFile.getLoadOffset();
 
-        entryFile = new EntryFile(loadOffset);
+        entryFile = new EntryFile(loadOffset,nodeId);
 
         commitIndex = entryIndexFile.getMaxIndex();
         // 由 entryIndexFile 和 entryFile 来加载出 logIndexOffset 和nextlogindex

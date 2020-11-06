@@ -147,7 +147,7 @@ public class NodeBuilder {
         ) : scheduler);
         context.setEventBus(eventBus == null ? new EventBus() : eventBus);
 
-        Sequence fileSequence = new FileSequence();
+        Sequence fileSequence = new FileSequence(selfId);
         context.setLog(new AbstractLog(eventBus,fileSequence));
         context.setNodeWorker(new NodeWorker());
         Member member = context.getMemberGroup().getMembers().get(context.getMemberGroup().getSelf());

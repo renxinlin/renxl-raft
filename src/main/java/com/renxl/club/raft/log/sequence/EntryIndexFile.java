@@ -1,5 +1,6 @@
 package com.renxl.club.raft.log.sequence;
 
+import com.renxl.club.raft.core.member.NodeId;
 import com.renxl.club.raft.log.entry.EntryIndex;
 import com.renxl.club.raft.support.FileApi;
 
@@ -44,11 +45,12 @@ public class EntryIndexFile {
     private int newEntryFileIndex = -1; // 最新的数据文件变化索引点
 
 
-    private String prefix = "./data/index";
+    private String prefix = "/data/index/";
     private int fileSize = 1024 * 1024 * 2;
 
 
-    public EntryIndexFile() {
+    public EntryIndexFile(NodeId nodeId) {
+        prefix = "./" + nodeId.getId()+prefix;
 
         fileApi = loadFromFileSystem(prefix);
         // 首次加载

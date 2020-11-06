@@ -5,6 +5,7 @@ import com.renxl.club.raft.core.scheduled.ElectionTaskFuture;
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 import lombok.experimental.Accessors;
 
 /**
@@ -17,6 +18,7 @@ import lombok.experimental.Accessors;
 @Accessors(chain = true)
 @AllArgsConstructor
 @NoArgsConstructor
+@ToString
 public class FollowerRole implements Role{
 
     private RoleEnum name;

@@ -1,5 +1,6 @@
 package com.renxl.club.raft.log.sequence;
 
+import com.renxl.club.raft.core.member.NodeId;
 import com.renxl.club.raft.log.entry.Entry;
 import com.renxl.club.raft.log.entry.EntryMeta;
 import com.renxl.club.raft.support.FileApi;
@@ -26,12 +27,12 @@ public class EntryFile {
      */
     private int nextOffset;
 
-    private String prefix = "./data/log";
+    private String prefix = "./data/log/";
     private int fileSize = 1024 * 1024 * 10;
 
 
-    public EntryFile(int loadOffset) {
-
+    public EntryFile(int loadOffset, NodeId nodeId) {
+        prefix = "./" + nodeId.getId()+ "/"+prefix;
         fileApi = loadFromFileSystem(prefix, loadOffset);
         // 首次加载
         if (fileApi == null) {

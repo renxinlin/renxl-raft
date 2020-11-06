@@ -2,7 +2,7 @@
 <Configuration  status="error" monitorInterval="1800">
     <properties>
         <property name="logHome">./logs</property>
-        <property name="logLevel">DEBUG</property>
+        <property name="logLevel">INFO</property>
         <property name="pattern">%d{yyyy-MM-dd HH:mm:ss.SSS} [%-5p] [%-5t] [%c{5}:%L] %m%n</property>
     </properties>
 

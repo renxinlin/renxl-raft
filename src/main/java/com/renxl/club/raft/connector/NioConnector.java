@@ -154,6 +154,7 @@ public class NioConnector implements Connector {
                     protected void initChannel(SocketChannel ch) throws Exception {
                         ChannelPipeline pipeline = ch.pipeline();
                         pipeline.addLast(new ProtoBufferEncoder(eventBus));
+                        // 入站黏包分包处理
                         pipeline.addLast(new LengthFieldBasedFrameDecoder(MAX_FRAME_LENGTH, LENGTH_FIELD_OFFSET, LENGTH_FIELD_LENGTH, LENGTH_ADJUSTMENT, INITIAL_BYTES_TO_STRIP, false));
                         pipeline.addLast(new ProtoBufferDecoder(eventBus));
                     }
@@ -200,7 +201,6 @@ public class NioConnector implements Connector {
                         log.info("send election error");
                     }
                 });
-                log.info("send electionRequest to [{}] success");
             } catch (Exception e) {
                 e.printStackTrace();
             }

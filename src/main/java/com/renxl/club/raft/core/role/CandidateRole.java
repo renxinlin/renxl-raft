@@ -3,6 +3,7 @@ package com.renxl.club.raft.core.role;
 import com.renxl.club.raft.core.scheduled.ElectionTaskFuture;
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
+import lombok.ToString;
 import lombok.experimental.Accessors;
 
 /**
@@ -13,6 +14,7 @@ import lombok.experimental.Accessors;
 @AllArgsConstructor
 @EqualsAndHashCode
 @Accessors(chain = true)
+@ToString
 public class CandidateRole implements Role {
 
 
