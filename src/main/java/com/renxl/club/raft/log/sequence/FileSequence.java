@@ -4,6 +4,8 @@ import com.renxl.club.raft.log.entry.Entry;
 import com.renxl.club.raft.log.entry.EntryIndex;
 import lombok.extern.slf4j.Slf4j;
 
+import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -16,7 +18,7 @@ public class FileSequence extends AbstractSequence {
 
     //   entryIndexFile 的日志偏移量
     int logIndexOffset;
-    //  entryIndexFile的 索引下标位置
+    //  【entryIndexFile的 索引下标位置】并且包含了缓冲区下标
     int nextLogIndex;
 
     // 索引 表示新建数据文件的位置
@@ -180,6 +182,45 @@ public class FileSequence extends AbstractSequence {
             return;
         }
         doRemoveAfter(lastMatchedIndex);
+    }
+
+    @Override
+    public List<Entry> subList(int fromWithIndex, int toWithOutIndex ) {
+
+        if(isEmpty()){
+            return null;
+        }
+        if (fromWithIndex < logIndexOffset || toWithOutIndex > nextLogIndex + 1 || fromWithIndex > fromWithIndex) {
+            throw new IllegalArgumentException("illegal from index " + fromWithIndex + " or to index " + toWithOutIndex);
+        }
+        List<Entry> result = new ArrayList<>();
+
+        // 文件
+        if (!entryIndexFile.isEmpty() && fromWithIndex <= entryIndexFile.getMaxIndex()) {
+            int maxIndex = Math.min(entryIndexFile.getMaxIndex() + 1, toWithOutIndex);
+            for (int i = fromWithIndex; i < maxIndex; i++) {
+                result.add(getEntry(i));
+            }
+        }
+
+        // buffer
+        if (!entryBuffer.isEmpty() && toWithOutIndex > entryBuffer.getFirst().getIndex()) {
+            Iterator<Entry> iterator = entryBuffer.iterator();
+            Entry entry;
+            int index;
+            while (iterator.hasNext()) {
+                entry = iterator.next();
+                index = entry.getIndex();
+                if (index >= toWithOutIndex) {
+                    break;
+                }
+                if (index >= fromWithIndex) {
+                    result.add(entry);
+                }
+            }
+        }
+        return result;
+
     }
 
     private void doRemoveAfter(int lastMatchedIndex) {

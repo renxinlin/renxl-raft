@@ -38,7 +38,6 @@ public class ProtoBufferDecoder extends ByteToMessageDecoder {
         //读取body
         int size = in.readableBytes();
 
-        log.info("msg type [{}] size [{}] and length [{}] ",type,size,length);
         byte[] bytes = new byte[size];
         in.readBytes(bytes);
 
@@ -47,19 +46,24 @@ public class ProtoBufferDecoder extends ByteToMessageDecoder {
             case APPEND_ENTRY_REQUEST:
                 AppendEntryRequest appendEntryRequest = ProtoStuffUtil.deserialize(bytes, AppendEntryRequest.class);
                 appendEntryRequest.setChannel(ctx.channel());
+                log.info("收到消息[日志复制请求] .... [{}]",appendEntryRequest);
                 eventBus.post(appendEntryRequest);
+
                 break;
             case APPEND_ENTRY_RESPONSE:
                 AppendEntryResponse appendEntryResponse = ProtoStuffUtil.deserialize(bytes, AppendEntryResponse.class);
+                log.info("收到消息[日志复制响应] .... [{}]",appendEntryResponse);
                 eventBus.post(appendEntryResponse);
                 break;
             case ELECTION_REQUEST:
                 ElectionRequest electionRequest = ProtoStuffUtil.deserialize(bytes, ElectionRequest.class);
                 electionRequest.setChannel(ctx.channel());
+                log.info("收到消息[选举请求] .... [{}]",electionRequest);
                 eventBus.post(electionRequest);
                 break;
             case ELECTION_RESPONSE:
                 ElectionResponse electionResponse = ProtoStuffUtil.deserialize(bytes, ElectionResponse.class);
+                log.info("收到消息[选举响应] .... [{}]",electionResponse);
                 eventBus.post(electionResponse);
                 break;
             default:

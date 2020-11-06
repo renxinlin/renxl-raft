@@ -31,7 +31,8 @@ public class AbstractLog implements Log {
     private Snapshot snapshot;
 
 
-    public AbstractLog(EventBus eventBus) {
+    public AbstractLog(EventBus eventBus, Sequence fileSequence) {
+        this.entrySequence = fileSequence;
         this.eventBus = eventBus;
     }
 
@@ -64,6 +65,7 @@ public class AbstractLog implements Log {
      */
     @Override
     public AppendEntryRequest createAppendEntries(int term, NodeId leaderId, int nextIndex) {
+        // 包含缓冲区
         int nextLogIndex = entrySequence.getNextLogIndex();
         if (nextIndex > nextLogIndex) {
             throw new IllegalStateException(" member  nextIndex bigger than leader nextIndex ");
@@ -73,23 +75,19 @@ public class AbstractLog implements Log {
                 term, // 当前term
                 leaderId,
                 entry.getIndex(),
-                entry.getTerm(),
+                entry.getTerm(), // todo 如果日志分代则entry可能获取不到 这里的index 和term都有问题
                 // 获取需要传输的日志信息
-                getAppendEntrys(nextIndex),
+                null,// 需要复制的日志
                 commitIndex,
                 null  // channel会在rpc环节补充
         );
+        if (!entrySequence.isEmpty()) {
+            // 全量传送未给子节点的日志还是批量 默认全量
+            // 这些日志需要发送给follower进行持久化
+            appendEntryRequest.setEntries(entrySequence.subList(nextIndex, nextLogIndex));
+
+        }
         return appendEntryRequest;
-    }
-
-
-    private List<Entry> getAppendEntrys(int nextIndex) {
-        // todo 添加一个变量来控制每次传输的量 目前是全量
-
-
-        // TODO 只能获取到快照之前的
-
-        return null;
     }
 
 

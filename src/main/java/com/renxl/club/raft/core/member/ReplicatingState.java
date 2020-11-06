@@ -20,7 +20,6 @@ import lombok.experimental.Accessors;
 public class ReplicatingState {
 
 
-
     private long matchIndex;
 
 
@@ -29,4 +28,29 @@ public class ReplicatingState {
     // 变速日志复制
     private boolean replicating = false;
 
+    public boolean advanceIndex(int lastEntryIndex) {
+        // 这里nextindex 只有稳定的时候 = matchIndex+1
+        // 新的leader会认为 matchIndex = 0 nextIndex = 1
+        boolean result = (matchIndex != lastEntryIndex || nextIndex != (lastEntryIndex + 1));
+
+        matchIndex = lastEntryIndex;
+        nextIndex = lastEntryIndex + 1;
+
+        return result;
+    }
+
+    public boolean backOffNextIndex() {
+        // 回退只能慢慢回退
+        if (nextIndex > 1) {
+            nextIndex--;
+            return true;
+        }
+        return false;
+
+    }
+
+    public void stop() {
+        replicating = false;
+
+    }
 }

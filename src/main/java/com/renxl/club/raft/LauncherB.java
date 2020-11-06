@@ -14,7 +14,7 @@ import java.util.List;
  * @Date 2020-08-25 18:08
  * @Version 1.0.0
  */
-public class Launcher {
+public class LauncherB {
 
 
     public static void main(String[] args) {

@@ -14,7 +14,10 @@ import com.renxl.club.raft.core.scheduled.NodeWorker;
 import com.renxl.club.raft.core.scheduled.Scheduler;
 import com.renxl.club.raft.core.store.NodeStore;
 import com.renxl.club.raft.core.store.NodeStoreImpl;
+import com.renxl.club.raft.log.AbstractLog;
 import com.renxl.club.raft.log.Log;
+import com.renxl.club.raft.log.sequence.FileSequence;
+import com.renxl.club.raft.log.sequence.Sequence;
 import lombok.Data;
 
 import javax.annotation.Nonnull;
@@ -144,8 +147,8 @@ public class NodeBuilder {
         ) : scheduler);
         context.setEventBus(eventBus == null ? new EventBus() : eventBus);
 
-
-        context.setLog(null);
+        Sequence fileSequence = new FileSequence();
+        context.setLog(new AbstractLog(eventBus,fileSequence));
         context.setNodeWorker(new NodeWorker());
         Member member = context.getMemberGroup().getMembers().get(context.getMemberGroup().getSelf());
         context.setConnector(createNioConnector(member.getEndpoint().getAddress().getPort()));

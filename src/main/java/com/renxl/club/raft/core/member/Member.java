@@ -22,8 +22,26 @@ public class Member {
 
 
     private Endpoint endpoint;
-
+    /**
+     * 从节点状态
+     */
     private ReplicatingState replicatingState;
 
+    /**
+     * 只有commitindex 与 matchindex和nextindex偏移对正，leader才认为完成子节点的正常化
+     * @param lastEntryIndex
+     * @return
+     */
+    public boolean advanceIndex(int lastEntryIndex) {
 
+      return   replicatingState.advanceIndex(lastEntryIndex);
+    }
+
+    public void stopReplicating() {
+        replicatingState.stop();
+    }
+
+    public boolean backOffNextIndex() {
+        return replicatingState.backOffNextIndex();
+    }
 }

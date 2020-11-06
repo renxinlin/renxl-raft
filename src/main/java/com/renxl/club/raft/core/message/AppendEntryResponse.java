@@ -1,6 +1,7 @@
 package com.renxl.club.raft.core.message;
 
 import com.renxl.club.raft.connector.message.RpcMessage;
+import com.renxl.club.raft.core.member.NodeId;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -22,6 +23,12 @@ public class AppendEntryResponse extends RpcMessage {
 
     private Boolean success;
     private int term;
+
+
+    private NodeId nodeId;
+
+
+    private AppendEntryRequest appendEntryRequest;
 
 
 

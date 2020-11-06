@@ -12,6 +12,7 @@ import com.renxl.club.raft.core.message.ElectionResponse;
 import com.renxl.club.raft.core.role.*;
 import com.renxl.club.raft.core.scheduled.ElectionTaskFuture;
 import com.renxl.club.raft.core.scheduled.LogReplicationFuture;
+import com.renxl.club.raft.log.Log;
 import com.renxl.club.raft.log.entry.Entry;
 import com.renxl.club.raft.log.statemachine.StateMachine;
 import lombok.extern.slf4j.Slf4j;
@@ -23,6 +24,12 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
+ * 核心竞争力是品牌影响力
+ * 核心技术垄断
+ * <p>
+ * 如果你买劳斯莱斯,没人说这个车像迈凯伦
+ * 这就是品牌 独一无二
+ *
  * @Author renxl
  * @Date 2020-08-26 10:49
  * @Version 1.0.0
@@ -303,8 +310,10 @@ public class NodeImpl implements Node {
     private void initNextIndexOfReplicatingStates() {
         Map<NodeId, Member> members = nodeContext.getMemberGroup().getMembers();
         for (Member member : members.values()) {
+            Log log = nodeContext.getLog();
+            int nextIndex = log.getNextIndex();
             member.setReplicatingState(new ReplicatingState(0,
-                    nodeContext.getLog().getNextIndex(), false));
+                    nextIndex, false));
         }
     }
 
@@ -334,12 +343,13 @@ public class NodeImpl implements Node {
             if (member.getEndpoint().getNodeId().equals(nodeContext.getSelfId())) {
                 continue;
             }
+            AppendEntryRequest appendEntries = nodeContext.getLog().createAppendEntries(
+                    this.role.getTerm(),
+                    this.nodeContext.getSelfId(),
+                    member.getReplicatingState().getNextIndex()
+            );
             this.nodeContext.getConnector().sendAppendEntryRequest(
-                    nodeContext.getLog().createAppendEntries(
-                            this.role.getTerm(),
-                            this.nodeContext.getSelfId(),
-                            member.getReplicatingState().getNextIndex()
-                    ), member.getEndpoint()
+                    appendEntries , member.getEndpoint()
             );
         }
 
@@ -368,7 +378,7 @@ public class NodeImpl implements Node {
     private void replyAppendEntryRequest(AppendEntryRequest appendEntryRequest) {
         // 这种情况正常不会出现
         if (appendEntryRequest.getTerm() < role.getTerm()) {
-            appendEntryRequest.getChannel().writeAndFlush(new AppendEntryResponse(false, role.getTerm()));
+            appendEntryRequest.getChannel().writeAndFlush(new AppendEntryResponse(false, role.getTerm(), nodeContext.getSelfId(), appendEntryRequest));
             return;
         }
 
@@ -387,7 +397,7 @@ public class NodeImpl implements Node {
                     appendEntryRequest.getLeaderId(),
                     appendEntryRequest.getLeaderId() // 正常情况下选举结束votedfor已经确定
             ));
-            appendEntryRequest.getChannel().writeAndFlush(new AppendEntryResponse(appendEntriesAndCommit(appendEntryRequest), appendEntryRequest.getTerm()));
+            appendEntryRequest.getChannel().writeAndFlush(new AppendEntryResponse(appendEntriesAndCommit(appendEntryRequest), appendEntryRequest.getTerm(), nodeContext.getSelfId(), appendEntryRequest));
             return;
         }
 
@@ -402,7 +412,7 @@ public class NodeImpl implements Node {
                     appendEntryRequest.getLeaderId(),
                     ((FollowerRole) role).getVotedFor()
             ));
-            appendEntryRequest.getChannel().writeAndFlush(new AppendEntryResponse(appendEntriesAndCommit(appendEntryRequest), appendEntryRequest.getTerm()));
+            appendEntryRequest.getChannel().writeAndFlush(new AppendEntryResponse(appendEntriesAndCommit(appendEntryRequest), appendEntryRequest.getTerm(), nodeContext.getSelfId(), appendEntryRequest));
             return;
         }
 
@@ -416,13 +426,13 @@ public class NodeImpl implements Node {
                     appendEntryRequest.getLeaderId(),
                     appendEntryRequest.getLeaderId() // 我个人认为应当服从leader
             ));
-            appendEntryRequest.getChannel().writeAndFlush(new AppendEntryResponse(appendEntriesAndCommit(appendEntryRequest), appendEntryRequest.getTerm()));
+            appendEntryRequest.getChannel().writeAndFlush(new AppendEntryResponse(appendEntriesAndCommit(appendEntryRequest), appendEntryRequest.getTerm(), nodeContext.getSelfId(), appendEntryRequest));
             return;
         }
         if (role instanceof LeaderRole) {
             //  理论上不会出现这一情景 否则说明集群出现两个leader 在过半机制 以及一票制等约束下 理论上无法出现
             log.error("more than two node had been leader");
-            appendEntryRequest.getChannel().writeAndFlush(new AppendEntryResponse(false, role.getTerm()));
+            appendEntryRequest.getChannel().writeAndFlush(new AppendEntryResponse(false, role.getTerm(), nodeContext.getSelfId(), appendEntryRequest));
             return;
         }
 
@@ -441,7 +451,7 @@ public class NodeImpl implements Node {
 
         boolean appendSuccess = nodeContext.getLog().appendFromLeader(prevLogTerm, prevLogIndex, entries);
         // follower节点追加到缓冲区成功则直接commit
-        if(appendSuccess){
+        if (appendSuccess) {
             nodeContext.getLog().commitIndex(Math.min(appendEntryRequest.getLeaderCommit(), appendEntryRequest.getLastEntryIndex()), appendEntryRequest.getTerm());
         }
         return appendSuccess;
@@ -453,6 +463,7 @@ public class NodeImpl implements Node {
         //
         nodeContext.getNodeWorker().execute(() -> doAppendEntryResponse(response));
     }
+
 
     private void doAppendEntryResponse(AppendEntryResponse response) {
 
@@ -471,9 +482,56 @@ public class NodeImpl implements Node {
             log.warn(" not a leader now");
             return;
         }
+        NodeId nodeId = response.getNodeId();
+        Member member = nodeContext.getMemberGroup().getMembers().get(nodeId);
+        if (member == null) {
+            log.info(" member could not found from leader [{}] ", member.toString());
+            return;
 
-        // todo 变速日志复制 以及过半推进commitindex  应用状态机需要hash等
+        }
+        // todo 集群变更
 
+        Boolean success = response.getSuccess();
+        // 日志响应对应的请求
+        AppendEntryRequest appendEntryRequest = response.getAppendEntryRequest();
+
+
+        if (success) {
+            // todo 集群变更  684
+
+            // 推进match index
+            // 如果提交成功 这就是最后的commitindex
+            boolean advanceResult = member.advanceIndex(appendEntryRequest.getLastEntryIndex());
+            // 如果更新follower的matchindex成功 并且过半则commit leader index
+            if (advanceResult)
+                nodeContext.getLog().commitIndex(nodeContext.getMemberGroup().getMatchIndexOfMajor(), role.getTerm());
+
+        } else {
+            // todo
+            if (!member.backOffNextIndex()) {
+                // 注意这里只操作next定额小
+                log.warn("need back nextindex but backfailure [{}]", member);
+                member.stopReplicating();
+                return;
+            }
+
+
+        }
+
+        doReplicateLog(member);
+
+
+    }
+
+    private void doReplicateLog(Member member) {
+        try {
+            AppendEntryRequest rpc = nodeContext.getLog().createAppendEntries(role.getTerm(), nodeContext.getSelfId(), member.getReplicatingState().getNextIndex());
+            nodeContext.getConnector().sendAppendEntryRequest(rpc, member.getEndpoint());
+        } catch (Exception ignored) { // 快照异常
+
+            // todo 快照
+            log.info("准备写快照");
+        }
     }
 
     @Override

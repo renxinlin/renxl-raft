@@ -35,4 +35,11 @@ public interface Sequence {
 
     void removeAfter(int lastMatchedIndex);
 
+    /**
+     * 获取【nextIndex nextLogIndex）之间的日志
+     * @param nextIndex
+     * @param nextLogIndex
+     * @return
+     */
+    List<Entry> subList(int nextIndex, int nextLogIndex);
 }
